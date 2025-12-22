@@ -1,0 +1,84 @@
+name: db
+description: Reusable Postgres database component for job-queue-monitor
+runtime: yaml
+
+components:
+  {
+    PostgresDb:
+      {
+        inputs:
+          {
+            projectName: { type: "string" },
+            stackName: { type: "string" },
+            networkName: { type: "string" },
+            dbName: { type: "string", secret: true },
+            dbUser: { type: "string", secret: true },
+            dbPassword: { type: "string", secret: true },
+            dbPort: { type: "integer", secret: true },
+            dbNetworkAlias: { type: "string", default: "db" },
+          },
+        variables:
+          {
+            DB_CONTAINER_NAME: "${projectName}-db-${stackName}",
+            DB_VOLUME_NAME: "${projectName}-db-data-${stackName}",
+          },
+        resources:
+          {
+            dbDataVolume:
+              {
+                type: "docker:Volume",
+                properties: { name: "${DB_VOLUME_NAME}" },
+              },
+            dbImage:
+              {
+                type: "docker:RemoteImage",
+                properties: { name: "postgres:17.0" },
+              },
+            dbContainer: { type: "docker:Container", properties: {
+                    name: "${DB_CONTAINER_NAME}",
+                    image: "${dbImage.imageId}",
+                    ports: [{ internal: "${dbPort}", external: "${dbPort}" }],
+                    command: ["-c", "port=${dbPort}"],
+                    envs:
+                      [
+                        "POSTGRES_DB=${dbName}",
+                        "POSTGRES_USER=${dbUser}",
+                        "POSTGRES_PASSWORD=${dbPassword}",
+                      ],
+                    mounts:
+                      [
+                        {
+                          type: "volume",
+                          source: "${dbDataVolume.name}",
+                          target: "/var/lib/postgresql/data",
+                        },
+                      ],
+                    networksAdvanced:
+                      [
+                        {
+                          name: "${networkName}",
+                          aliases: ["${dbNetworkAlias}"],
+                        },
+                      ],
+                    healthcheck:
+                      {
+                        tests:
+                          ["CMD-SHELL", "pg_isready -U ${dbUser} -p ${dbPort}"],
+                        interval: "10s",
+                        timeout: "5s",
+                        retries: 5,
+                      },
+                    wait: true,
+                    restart: "unless-stopped",
+                  }, options: { dependsOn: ["${dbDataVolume}"] } },
+          },
+        outputs:
+          {
+            dbContainerName: "${dbContainer.name}",
+            dbHost: "${dbContainer.name}",
+            dbPort: "${dbPort}",
+            dbName: "${dbName}",
+            dbUser: "${dbUser}",
+          },
+      },
+  }

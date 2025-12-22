@@ -1,0 +1,12 @@
+config:
+  job-queue-monitor:APP_PORT: "5173"
+  job-queue-monitor:CORE_STACK_NAME: Rashad/portfolio-infra/dev
+  job-queue-monitor:BUILD_PHASE_TARGET: development
+  job-queue-monitor-standalone:DB_NAME:
+    secure: AAABAJkR3FwGvJT4shrIolXV3NBXFK2hn+CFzyPvfpOY4qcmuPaZ4+CbWVUlr4u1Nw==
+  job-queue-monitor-standalone:DB_USER:
+    secure: AAABAL6Jojg65Zkio3PMGqq0ws2BRYxlNA6wGE95T64TbcSYIeI=
+  job-queue-monitor-standalone:DB_PASSWORD:
+    secure: AAABADG5mkOKU31IWUKMv6KUOGFbZkgxLtfkAjP2ZR30YafbGAM=
+  job-queue-monitor-standalone:DB_PORT:
+    secure: AAABAP67Sp6Ab7N4F9upDLp87tdYIrK8Mxac0RFL56GVhX5A

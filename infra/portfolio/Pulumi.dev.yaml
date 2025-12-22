@@ -1,4 +1,0 @@
-config:
-  job-queue-monitor:APP_PORT: "5173"
-  job-queue-monitor:CORE_STACK_NAME: Rashad/portfolio-infra/dev
-  job-queue-monitor:BUILD_PHASE_TARGET: development
