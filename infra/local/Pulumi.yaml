@@ -1,5 +1,6 @@
 name: job-queue-monitor-standalone
 description: Standalone infra for job-queue-monitor (no portfolio stack, no Traefik)
+stackConfigDir: ../configs
 runtime: yaml
 
 config:
@@ -10,6 +11,10 @@ config:
     "UI_APP_PORT": { type: "string", default: "5173" },
     "UI_HOST_PORT": { type: "string", default: "5173" },
     "BUILD_PHASE_TARGET": { type: "string", default: "development" },
+    "DB_NAME": { type: "string", default: "job_queue_monitor" },
+    "DB_USER": { type: "string", default: "job_queue_monitor" },
+    "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
+    "DB_PORT": { type: "string", default: "5432" },
   }
 
 variables:
@@ -19,10 +24,18 @@ variables:
     UI_APP_PORT: "${UI_APP_PORT}",
     UI_HOST_PORT: "${UI_HOST_PORT}",
     BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}",
+    APP_NETWORK_NAME: "${pulumi.project}-network",
+    DB_NAME: "${DB_NAME}",
+    DB_USER: "${DB_USER}",
+    DB_PASSWORD: "${DB_PASSWORD}",
+    DB_PORT: "${DB_PORT}",
+    DB_HOST: "db",
   }
 
 resources:
   {
+    jobQueueNetwork:
+      { type: "docker:Network", properties: { name: "${APP_NETWORK_NAME}" } },
     jobQueueApiNodeModulesVolume:
       {
         type: "docker:Volume",
@@ -71,6 +84,15 @@ resources:
             name: "job-queue-monitor-api-standalone-${pulumi.stack}",
             image: "${jobQueueApiImage.imageId}",
             restart: "always",
+            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            envs:
+              [
+                "DB_HOST=${DB_HOST}",
+                "DB_PORT=${DB_PORT}",
+                "DB_NAME=${DB_NAME}",
+                "DB_USER=${DB_USER}",
+                "DB_PASSWORD=${DB_PASSWORD}",
+              ],
             mounts:
               [
                 {
@@ -96,6 +118,7 @@ resources:
             name: "job-queue-monitor-ui-standalone-${pulumi.stack}",
             image: "${jobQueueUiImage.imageId}",
             restart: "always",
+            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
             mounts:
               [
                 {
@@ -113,8 +136,23 @@ resources:
               [{ internal: "${UI_APP_PORT}", external: "${UI_HOST_PORT}" }],
           },
       },
+    db:
+      {
+        type: "db:PostgresDb",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            networkName: "${APP_NETWORK_NAME}",
+            dbName: "${DB_NAME}",
+            dbUser: "${DB_USER}",
+            dbPassword: "${DB_PASSWORD}",
+            dbPort: "${DB_PORT}",
+            dbNetworkAlias: "${DB_HOST}",
+          },
+      },
   }
-
+packages: { db: "../components/db" }
 outputs:
   {
     apiUrl: "http://localhost:${API_HOST_PORT}",

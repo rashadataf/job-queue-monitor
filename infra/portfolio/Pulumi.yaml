@@ -1,5 +1,6 @@
 name: job-queue-monitor
 description: Job Queue Monitor app stack attached to portfolio Traefik/core infra
+stackConfigDir: ../configs
 runtime: yaml
 
 config:
@@ -7,7 +8,11 @@ config:
     "pulumi:tags": { value: { "pulumi:template": yaml } },
     "CORE_STACK_NAME": { type: "string" },
     "APP_PORT": { type: "string" },
-    "BUILD_PHASE_TARGET": { type: "string", value: "development" }
+    "BUILD_PHASE_TARGET": { type: "string", value: "development" },
+    "DB_NAME": { type: "string", default: "job_queue_monitor" },
+    "DB_USER": { type: "string", default: "job_queue_monitor" },
+    "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
+    "DB_PORT": { type: "string", default: "5432" }
   } # e.g. portfolio-infra/dev
 
 variables:
@@ -18,7 +23,11 @@ variables:
     ENABLE_TLS: "${coreStack.outputs.enableTls}",
     APP_PORT: "${APP_PORT}",
     CORE_STACK_NAME: "${CORE_STACK_NAME}",
-    BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}"
+    BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}",
+    DB_NAME: "${DB_NAME}",
+    DB_USER: "${DB_USER}",
+    DB_PASSWORD: "${DB_PASSWORD}",
+    DB_PORT: "${DB_PORT}"
   }
 
 resources:
@@ -37,6 +46,36 @@ resources:
       {
         type: "docker:Volume",
         properties: { name: "job_queue_monitor_ui_node_modules" },
+      },
+    jobQueueDbDataVolume:
+      {
+        type: "docker:Volume",
+        properties: { name: "job_queue_monitor_db_data" },
+      },
+    jobQueueDbContainer:
+      {
+        type: "docker:Container",
+        properties:
+          {
+            name: "job-queue-monitor-db-${pulumi.stack}",
+            image: "postgres:16-alpine",
+            restart: "always",
+            mounts:
+              [
+                {
+                  type: "volume",
+                  source: "${jobQueueDbDataVolume.name}",
+                  target: "/var/lib/postgresql/data",
+                },
+              ],
+            envs:
+              [
+                "POSTGRES_DB=${DB_NAME}",
+                "POSTGRES_USER=${DB_USER}",
+                "POSTGRES_PASSWORD=${DB_PASSWORD}",
+              ],
+            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+          },
       },
     jobQueueApiImage:
       {
@@ -74,6 +113,14 @@ resources:
           {
             image: "${jobQueueApiImage.imageName}",
             networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            envs:
+              [
+                "DB_HOST=${jobQueueDbContainer.name}",
+                "DB_PORT=${DB_PORT}",
+                "DB_NAME=${DB_NAME}",
+                "DB_USER=${DB_USER}",
+                "DB_PASSWORD=${DB_PASSWORD}",
+              ],
             mounts:
               [
                 {
