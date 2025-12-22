@@ -1,0 +1,175 @@
+name: job-queue-monitor
+description: Job Queue Monitor app stack attached to portfolio Traefik/core infra
+runtime: yaml
+
+config:
+  {
+    "pulumi:tags": { value: { "pulumi:template": yaml } },
+    "CORE_STACK_NAME": { type: "string" },
+    "APP_PORT": { type: "string" },
+    "BUILD_PHASE_TARGET": { type: "string", value: "development" }
+  } # e.g. portfolio-infra/dev
+
+variables:
+  {
+    APP_NETWORK_NAME: "${coreStack.outputs.appNetworkName}",
+    DOMAIN_NAME: "${coreStack.outputs.domainName}",
+    ROUTER_ENTRYPOINT: "${coreStack.outputs.routerEntrypoint}",
+    ENABLE_TLS: "${coreStack.outputs.enableTls}",
+    APP_PORT: "${APP_PORT}",
+    CORE_STACK_NAME: "${CORE_STACK_NAME}",
+    BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}"
+  }
+
+resources:
+  {
+    coreStack:
+      {
+        type: "pulumi:pulumi:StackReference",
+        properties: { name: "${CORE_STACK_NAME}" },
+      },
+    jobQueueApiNodeModulesVolume:
+      {
+        type: "docker:Volume",
+        properties: { name: "job_queue_monitor_api_node_modules" },
+      },
+    jobQueueUiNodeModulesVolume:
+      {
+        type: "docker:Volume",
+        properties: { name: "job_queue_monitor_ui_node_modules" },
+      },
+    jobQueueApiImage:
+      {
+        type: "docker:RemoteImage",
+        properties:
+          {
+            name: "job-queue-monitor-api:latest",
+            build:
+              {
+                context: "../../api",
+                platform: "linux/amd64",
+                target: "${BUILD_PHASE_TARGET}",
+              },
+          },
+      },
+    jobQueueUiImage:
+      {
+        type: "docker:RemoteImage",
+        properties:
+          {
+            name: "job-queue-monitor-ui:latest",
+            build:
+              {
+                context: "../../ui",
+                platform: "linux/amd64",
+                target: "${BUILD_PHASE_TARGET}",
+                buildArgs: { APP_PORT: "${APP_PORT}" },
+              },
+          },
+      },
+    jobQueueApiContainer:
+      {
+        type: "docker:Container",
+        properties:
+          {
+            image: "${jobQueueApiImage.imageName}",
+            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            mounts:
+              [
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../api",
+                  target: "/usr/src/app",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueApiNodeModulesVolume.name}",
+                  target: "/usr/src/app/node_modules",
+                },
+              ],
+          },
+      },
+    jobQueueUiContainer:
+      {
+        type: "docker:Container",
+        properties:
+          {
+            image: "${jobQueueUiImage.imageName}",
+            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            mounts:
+              [
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../ui",
+                  target: "/usr/src/app",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueUiNodeModulesVolume.name}",
+                  target: "/usr/src/app/node_modules",
+                },
+              ],
+            labels:
+              [
+                { label: "traefik.enable", value: "true" },
+                {
+                  label:
+                    "traefik.http.services.job-queue-monitor-ui.loadbalancer.server.port",
+                  value: "${APP_PORT}",
+                },
+
+                # Main router for apex domain
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui.rule",
+                  value: "Host(`jobs.${DOMAIN_NAME}`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui.service",
+                  value: "job-queue-monitor-ui",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui.tls.certresolver",
+                  value: "letsencrypt",
+                },
+
+                # Router for www subdomain
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui-www.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui-www.rule",
+                  value: "Host(`www.jobs.${DOMAIN_NAME}`)",
+                },
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui-www.service",
+                  value: "job-queue-monitor-ui",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label:
+                    "traefik.http.routers.job-queue-monitor-ui-www.tls.certresolver",
+                  value: "letsencrypt",
+                },
+              ],
+          },
+      },
+  }
+
+outputs: {}
