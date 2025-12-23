@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Job, JobStatus } from './entities/job.entity';
+import { JobStatus } from '@job-queue-monitor/shared';
+import { Job } from './entities/job.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 
 @Injectable()

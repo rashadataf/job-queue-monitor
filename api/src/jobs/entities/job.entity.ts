@@ -8,12 +8,7 @@ import {
     Generated,
 } from 'typeorm';
 
-export enum JobStatus {
-    PENDING = 'pending',
-    RUNNING = 'running',
-    COMPLETED = 'completed',
-    FAILED = 'failed',
-}
+import { JobStatus } from '@job-queue-monitor/shared';
 
 @Entity('jobs')
 export class Job {

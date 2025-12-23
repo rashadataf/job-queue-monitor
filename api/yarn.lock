@@ -879,6 +879,9 @@
     "@types/yargs" "^17.0.33"
     chalk "^4.1.2"
 
+"@job-queue-monitor/shared@../shared":
+  version "0.0.0"
+
 "@jridgewell/gen-mapping@^0.3.12", "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.13"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz#6342a19f44347518c93e43b1ac69deb3c4656a1f"
