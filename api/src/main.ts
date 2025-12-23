@@ -6,7 +6,7 @@ import type { AppConfig } from './config/app.config';
 import { ConfigNamespace } from './config/config-names.enum';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { cors: true });
     const configService = app.get(ConfigService);
     const appConfig = configService.get<AppConfig>(ConfigNamespace.App);
 
@@ -22,6 +22,6 @@ async function bootstrap() {
         }),
     );
 
-    await app.listen(appConfig.port);
+    await app.listen(appConfig.port, '0.0.0.0');
 }
 bootstrap();

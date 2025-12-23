@@ -46,6 +46,12 @@ resources:
         type: "docker:Volume",
         properties: { name: "job_queue_monitor_ui_node_modules_standalone" },
       },
+    jobQueueSharedNodeModulesVolume:
+      {
+        type: "docker:Volume",
+        properties:
+          { name: "job_queue_monitor_shared_node_modules_standalone" },
+      },
     jobQueueApiImage:
       {
         type: "docker:RemoteImage",
@@ -54,7 +60,8 @@ resources:
             name: "job-queue-monitor-api-standalone",
             build:
               {
-                context: "../../api",
+                context: "../..",
+                dockerfile: "api/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
                 buildArgs: { APP_PORT: "${API_APP_PORT}" },
@@ -69,7 +76,8 @@ resources:
             name: "job-queue-monitor-ui-standalone",
             build:
               {
-                context: "../../ui",
+                context: "../..",
+                dockerfile: "ui/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
                 buildArgs: { APP_PORT: "${UI_APP_PORT}" },
@@ -98,12 +106,22 @@ resources:
                 {
                   type: "bind",
                   source: "${pulumi.cwd}/../../api",
-                  target: "/usr/src/app",
+                  target: "/usr/src/app/api",
+                },
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../shared",
+                  target: "/usr/src/app/shared",
                 },
                 {
                   type: "volume",
                   source: "${jobQueueApiNodeModulesVolume.name}",
-                  target: "/usr/src/app/node_modules",
+                  target: "/usr/src/app/api/node_modules",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueSharedNodeModulesVolume.name}",
+                  target: "/usr/src/app/shared/node_modules",
                 },
               ],
             ports:
@@ -124,12 +142,22 @@ resources:
                 {
                   type: "bind",
                   source: "${pulumi.cwd}/../../ui",
-                  target: "/usr/src/app",
+                  target: "/usr/src/app/ui",
+                },
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../shared",
+                  target: "/usr/src/app/shared",
                 },
                 {
                   type: "volume",
                   source: "${jobQueueUiNodeModulesVolume.name}",
-                  target: "/usr/src/app/node_modules",
+                  target: "/usr/src/app/ui/node_modules",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueSharedNodeModulesVolume.name}",
+                  target: "/usr/src/app/shared/node_modules",
                 },
               ],
             ports:

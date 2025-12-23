@@ -3,8 +3,7 @@ description: Job Queue Monitor app stack attached to portfolio Traefik/core infr
 stackConfigDir: ../configs
 runtime: yaml
 
-config:
-  {
+config: {
     "pulumi:tags": { value: { "pulumi:template": yaml } },
     "CORE_STACK_NAME": { type: "string" },
     "APP_PORT": { type: "string" },
@@ -12,7 +11,7 @@ config:
     "DB_NAME": { type: "string", default: "job_queue_monitor" },
     "DB_USER": { type: "string", default: "job_queue_monitor" },
     "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
-    "DB_PORT": { type: "string", default: "5432" }
+    "DB_PORT": { type: "string", default: "5432" },
   } # e.g. portfolio-infra/dev
 
 variables:
@@ -27,7 +26,7 @@ variables:
     DB_NAME: "${DB_NAME}",
     DB_USER: "${DB_USER}",
     DB_PASSWORD: "${DB_PASSWORD}",
-    DB_PORT: "${DB_PORT}"
+    DB_PORT: "${DB_PORT}",
   }
 
 resources:
@@ -46,6 +45,11 @@ resources:
       {
         type: "docker:Volume",
         properties: { name: "job_queue_monitor_ui_node_modules" },
+      },
+    jobQueueSharedNodeModulesVolume:
+      {
+        type: "docker:Volume",
+        properties: { name: "job_queue_monitor_shared_node_modules" },
       },
     jobQueueDbDataVolume:
       {
@@ -85,7 +89,8 @@ resources:
             name: "job-queue-monitor-api:latest",
             build:
               {
-                context: "../../api",
+                context: "../..",
+                dockerfile: "api/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
               },
@@ -99,7 +104,8 @@ resources:
             name: "job-queue-monitor-ui:latest",
             build:
               {
-                context: "../../ui",
+                context: "../..",
+                dockerfile: "ui/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
                 buildArgs: { APP_PORT: "${APP_PORT}" },
@@ -126,12 +132,22 @@ resources:
                 {
                   type: "bind",
                   source: "${pulumi.cwd}/../../api",
-                  target: "/usr/src/app",
+                  target: "/usr/src/app/api",
+                },
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../shared",
+                  target: "/usr/src/app/shared",
                 },
                 {
                   type: "volume",
                   source: "${jobQueueApiNodeModulesVolume.name}",
-                  target: "/usr/src/app/node_modules",
+                  target: "/usr/src/app/api/node_modules",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueSharedNodeModulesVolume.name}",
+                  target: "/usr/src/app/shared/node_modules",
                 },
               ],
           },
@@ -148,27 +164,34 @@ resources:
                 {
                   type: "bind",
                   source: "${pulumi.cwd}/../../ui",
-                  target: "/usr/src/app",
+                  target: "/usr/src/app/ui",
+                },
+                {
+                  type: "bind",
+                  source: "${pulumi.cwd}/../../shared",
+                  target: "/usr/src/app/shared",
                 },
                 {
                   type: "volume",
                   source: "${jobQueueUiNodeModulesVolume.name}",
-                  target: "/usr/src/app/node_modules",
+                  target: "/usr/src/app/ui/node_modules",
+                },
+                {
+                  type: "volume",
+                  source: "${jobQueueSharedNodeModulesVolume.name}",
+                  target: "/usr/src/app/shared/node_modules",
                 },
               ],
             labels:
               [
                 { label: "traefik.enable", value: "true" },
                 {
-                  label:
-                    "traefik.http.services.job-queue-monitor-ui.loadbalancer.server.port",
+                  label: "traefik.http.services.job-queue-monitor-ui.loadbalancer.server.port",
                   value: "${APP_PORT}",
                 },
 
-                # Main router for apex domain
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui.entrypoints",
+                  label: "traefik.http.routers.job-queue-monitor-ui.entrypoints",
                   value: "${ROUTER_ENTRYPOINT}",
                 },
                 {
@@ -184,25 +207,20 @@ resources:
                   value: "${ENABLE_TLS}",
                 },
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui.tls.certresolver",
+                  label: "traefik.http.routers.job-queue-monitor-ui.tls.certresolver",
                   value: "letsencrypt",
                 },
 
-                # Router for www subdomain
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui-www.entrypoints",
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.entrypoints",
                   value: "${ROUTER_ENTRYPOINT}",
                 },
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui-www.rule",
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.rule",
                   value: "Host(`www.jobs.${DOMAIN_NAME}`)",
                 },
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui-www.service",
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.service",
                   value: "job-queue-monitor-ui",
                 },
                 {
@@ -210,8 +228,7 @@ resources:
                   value: "${ENABLE_TLS}",
                 },
                 {
-                  label:
-                    "traefik.http.routers.job-queue-monitor-ui-www.tls.certresolver",
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.tls.certresolver",
                   value: "letsencrypt",
                 },
               ],

@@ -1,0 +1,25 @@
+{
+  "name": "@job-queue-monitor/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "dev": "tsc -w -p tsconfig.json --preserveWatchOutput & tsc -w -p tsconfig.cjs.json --preserveWatchOutput"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

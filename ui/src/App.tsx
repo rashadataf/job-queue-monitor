@@ -1,35 +1,32 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { SWRConfig } from 'swr';
+import { CreateJobForm } from './components/CreateJobForm';
+import { JobsList } from './components/JobsList';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <SWRConfig
+      value={{
+        onError: (error) => {
+          console.error('SWR Error:', error);
+        },
+      }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+        <header style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            Job Queue Monitor
+          </h1>
+          <p style={{ color: '#6B7280' }}>
+            Monitor and manage your job queue in real-time
+          </p>
+        </header>
+
+        <CreateJobForm />
+        <JobsList />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </SWRConfig>
+  );
 }
 
-export default App
+export default App;
