@@ -1,3 +1,5 @@
+import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+
 export enum JobStatus {
   PENDING = "pending",
   RUNNING = "running",
@@ -15,6 +17,14 @@ export interface Job {
   updatedAt: string;
 }
 
-export interface CreateJobDto {
+export class UpdateJobStatusDto {
+  @IsEnum(JobStatus)
+  @IsNotEmpty()
+  status: JobStatus;
+}
+
+export class CreateJobDto {
+  @IsString()
+  @IsNotEmpty()
   name: string;
 }

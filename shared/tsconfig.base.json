@@ -5,7 +5,12 @@
     "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }
