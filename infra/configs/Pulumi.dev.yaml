@@ -10,3 +10,4 @@ config:
     secure: AAABADG5mkOKU31IWUKMv6KUOGFbZkgxLtfkAjP2ZR30YafbGAM=
   job-queue-monitor-standalone:DB_PORT:
     secure: AAABAP67Sp6Ab7N4F9upDLp87tdYIrK8Mxac0RFL56GVhX5A
+  job-queue-monitor-standalone:REDIS_PORT: "6379"
