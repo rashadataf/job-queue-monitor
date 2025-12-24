@@ -1,0 +1,55 @@
+name: redis
+description: Reusable Redis component for job-queue-monitor
+runtime: yaml
+
+components:
+  {
+    Redis:
+      {
+        inputs:
+          {
+            projectName: { type: "string" },
+            stackName: { type: "string" },
+            networkName: { type: "string" },
+            redisNetworkAlias: { type: "string", default: "redis" },
+            redisPort: { type: "integer", default: 6379 },
+          },
+        variables:
+          {
+            REDIS_CONTAINER_NAME: "${projectName}-redis-${stackName}",
+            REDIS_IMAGE_NAME: "redis:7-alpine",
+          },
+        resources:
+          {
+            redisImage:
+              {
+                type: "docker:RemoteImage",
+                properties: { name: "${REDIS_IMAGE_NAME}" },
+              },
+            redisContainer:
+              {
+                type: "docker:Container",
+                properties:
+                  {
+                    name: "${REDIS_CONTAINER_NAME}",
+                    image: "${redisImage.imageId}",
+                    ports:
+                      [{ internal: "${redisPort}", external: "${redisPort}" }],
+                    networksAdvanced:
+                      [
+                        {
+                          name: "${networkName}",
+                          aliases: ["${redisNetworkAlias}"],
+                        },
+                      ],
+                    restart: "unless-stopped",
+                  },
+              },
+          },
+        outputs:
+          {
+            redisContainerName: "${redisContainer.name}",
+            redisPort: "${redisPort}",
+          },
+      },
+  }

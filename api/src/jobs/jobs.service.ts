@@ -1,15 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { JobStatus } from '@job-queue-monitor/shared';
 import { Job } from './entities/job.entity';
 import { CreateJobDto } from './dto/create-job.dto';
+import { JOB_QUEUE_NAME } from './jobs.constants';
 
 @Injectable()
 export class JobsService {
     constructor(
         @InjectRepository(Job)
         private jobRepository: Repository<Job>,
+        @InjectQueue(JOB_QUEUE_NAME) private jobQueue: Queue,
     ) {}
 
     async findAll(): Promise<Job[]> {
@@ -31,7 +35,18 @@ export class JobsService {
             name: createJobDto.name,
             status: JobStatus.PENDING,
         });
-        return this.jobRepository.save(job);
+        const savedJob = await this.jobRepository.save(job);
+
+        // Add to BullMQ queue
+        // We simulate a duration between 5s and 15s
+        const duration = Math.floor(Math.random() * 10000) + 5000;
+
+        await this.jobQueue.add('process-job', {
+            nanoId: savedJob.nanoId,
+            duration,
+        });
+
+        return savedJob;
     }
 
     async updateStatusByNanoId(

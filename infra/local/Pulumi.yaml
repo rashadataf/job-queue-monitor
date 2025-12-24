@@ -15,6 +15,7 @@ config:
     "DB_USER": { type: "string", default: "job_queue_monitor" },
     "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
     "DB_PORT": { type: "string", default: "5432" },
+    "REDIS_PORT": { type: "string", default: "6379" },
   }
 
 variables:
@@ -30,6 +31,8 @@ variables:
     DB_PASSWORD: "${DB_PASSWORD}",
     DB_PORT: "${DB_PORT}",
     DB_HOST: "db",
+    REDIS_HOST: "redis",
+    REDIS_PORT: "${REDIS_PORT}",
   }
 
 resources:
@@ -100,6 +103,8 @@ resources:
                 "DB_NAME=${DB_NAME}",
                 "DB_USER=${DB_USER}",
                 "DB_PASSWORD=${DB_PASSWORD}",
+                "REDIS_HOST=${REDIS_HOST}",
+                "REDIS_PORT=${REDIS_PORT}",
               ],
             mounts:
               [
@@ -179,8 +184,20 @@ resources:
             dbNetworkAlias: "${DB_HOST}",
           },
       },
+    redis:
+      {
+        type: "redis:Redis",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            networkName: "${APP_NETWORK_NAME}",
+            redisNetworkAlias: "${REDIS_HOST}",
+            redisPort: "${REDIS_PORT}",
+          },
+      },
   }
-packages: { db: "../components/db" }
+packages: { db: "../components/db", redis: "../components/redis" }
 outputs:
   {
     apiUrl: "http://localhost:${API_HOST_PORT}",
