@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobStatus } from '@job-queue-monitor/shared';
@@ -31,6 +31,41 @@ export class JobsService {
             name: createJobDto.name,
             status: JobStatus.PENDING,
         });
+        return this.jobRepository.save(job);
+    }
+
+    async updateStatusByNanoId(
+        nanoId: string,
+        status: JobStatus,
+    ): Promise<Job> {
+        const job = await this.findOneByNanoId(nanoId);
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${nanoId} not found`);
+        }
+
+        job.status = status;
+
+        if (status === JobStatus.RUNNING && !job.startedAt) {
+            job.startedAt = new Date();
+        }
+
+        if (
+            (status === JobStatus.COMPLETED || status === JobStatus.FAILED) &&
+            !job.completedAt
+        ) {
+            job.completedAt = new Date();
+        }
+
+        // Reset completedAt if restarting a job
+        if (status === JobStatus.PENDING || status === JobStatus.RUNNING) {
+            job.completedAt = null;
+        }
+
+        // Reset startedAt if resetting to pending
+        if (status === JobStatus.PENDING) {
+            job.startedAt = null;
+        }
+
         return this.jobRepository.save(job);
     }
 

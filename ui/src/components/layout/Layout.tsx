@@ -1,0 +1,60 @@
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { AppBar, Toolbar, Typography, Container, Box, Button } from "@mui/material";
+import { Dashboard as DashboardIcon, Work as WorkIcon } from "@mui/icons-material";
+
+export const Layout = () => {
+  const location = useLocation();
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="sticky" color="default" elevation={1}>
+        <Container maxWidth="lg">
+          <Toolbar disableGutters>
+            <WorkIcon sx={{ mr: 1 }} />
+            <Typography
+              variant="h6"
+              noWrap
+              component={Link}
+              to="/"
+              sx={{
+                mr: 4,
+                fontWeight: 700,
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
+            >
+              Job Queue Monitor
+            </Typography>
+
+            <Box sx={{ flexGrow: 1, display: 'flex' }}>
+              <Button
+                component={Link}
+                to="/"
+                startIcon={<DashboardIcon />}
+                sx={{
+                  my: 2,
+                  color: location.pathname === "/" ? 'primary.main' : 'text.secondary',
+                  display: 'flex',
+                }}
+              >
+                Dashboard
+              </Button>
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
+        <Outlet />
+      </Container>
+
+      <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: (theme) => theme.palette.grey[100] }}>
+        <Container maxWidth="lg">
+          <Typography variant="body2" color="text.secondary" align="center">
+            Built with ❤️ By Rashad Ataf.
+          </Typography>
+        </Container>
+      </Box>
+    </Box>
+  );
+}

@@ -1,4 +1,4 @@
-import type { CreateJobDto, Job } from "@job-queue-monitor/shared";
+import type { CreateJobDto, Job, JobStatus } from "@job-queue-monitor/shared";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -23,6 +23,11 @@ export const jobsApi = {
 
   async createJob(data: CreateJobDto): Promise<Job> {
     const response = await api.post<Job>("/jobs", data);
+    return response.data;
+  },
+
+  async updateJobStatus(nanoId: string, status: JobStatus): Promise<Job> {
+    const response = await api.patch<Job>(`/jobs/${nanoId}/status`, { status });
     return response.data;
   },
 };

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import useSWR from "swr";
-import { jobsApi } from "../services/api";
-import type { CreateJobDto, Job } from "@job-queue-monitor/shared";
+import { jobsApi } from "@/services/api";
+import type { CreateJobDto, Job, JobStatus } from "@job-queue-monitor/shared";
 
 /**
  * Hook for managing the jobs list with CRUD operations
@@ -64,10 +64,21 @@ export function useJob(nanoId: string | null) {
     mutate();
   }, [mutate]);
 
+  const updateStatus = useCallback(
+    async (status: JobStatus) => {
+      if (!nanoId) return;
+      // Optimistic update could go here, but for simplicity we'll wait
+      await jobsApi.updateJobStatus(nanoId, status);
+      mutate();
+    },
+    [nanoId, mutate]
+  );
+
   return {
     job: data,
     isLoading,
     isError: error,
     refresh,
+    updateStatus,
   };
 }
