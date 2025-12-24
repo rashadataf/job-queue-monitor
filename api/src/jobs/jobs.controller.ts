@@ -9,8 +9,8 @@ import {
     ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
 import { Job } from './entities/job.entity';
+import { CreateJobDto } from '@job-queue-monitor/shared';
 
 @Controller('jobs')
 @UseInterceptors(ClassSerializerInterceptor)

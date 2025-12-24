@@ -5,6 +5,9 @@
     "outDir": "./dist/esm",
     "declaration": true,
     "declarationDir": "./dist/types",
-    "declarationMap": true
+    "declarationMap": true,
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
