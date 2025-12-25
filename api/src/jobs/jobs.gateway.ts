@@ -9,6 +9,7 @@ import { Logger } from '@nestjs/common';
 import {
     JobSocketEvent,
     JobStatusUpdatedPayload,
+    Job,
 } from '@job-queue-monitor/shared';
 
 @WebSocketGateway({
@@ -32,5 +33,9 @@ export class JobsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     emitJobStatusUpdate(payload: JobStatusUpdatedPayload) {
         this.server.emit(JobSocketEvent.JOB_STATUS_UPDATED, payload);
+    }
+
+    emitJobCreated(job: Job) {
+        this.server.emit(JobSocketEvent.JOB_CREATED, { job });
     }
 }

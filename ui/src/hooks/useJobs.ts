@@ -25,15 +25,18 @@ export function useJobs() {
   /**
    * Create a new job
    */
-  const createJob = useCallback(
-    async (jobData: CreateJobDto): Promise<Job> => {
-      const newJob = await jobsApi.createJob(jobData);
-      // Optimistically update the cache
-      await mutate();
-      return newJob;
-    },
-    [mutate]
-  );
+  const createJob = useCallback(async (jobData: CreateJobDto): Promise<Job> => {
+    const newJob = await jobsApi.createJob(jobData);
+    // Optimistically update the cache
+    // mutate(
+    //   (currentJobs) => {
+    //     if (!currentJobs) return [newJob];
+    //     return [newJob, ...currentJobs];
+    //   },
+    //   { revalidate: false }
+    // );
+    return newJob;
+  }, []);
 
   /**
    * Manually refresh the jobs list

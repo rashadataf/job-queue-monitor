@@ -7,6 +7,7 @@ import { JobStatus } from '@job-queue-monitor/shared';
 import { Job } from './entities/job.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 import { JOB_QUEUE_NAME } from './jobs.constants';
+import { JobsGateway } from './jobs.gateway';
 
 @Injectable()
 export class JobsService {
@@ -14,6 +15,7 @@ export class JobsService {
         @InjectRepository(Job)
         private jobRepository: Repository<Job>,
         @InjectQueue(JOB_QUEUE_NAME) private jobQueue: Queue,
+        private readonly jobsGateway: JobsGateway,
     ) {}
 
     async findAll(): Promise<Job[]> {
@@ -36,6 +38,9 @@ export class JobsService {
             status: JobStatus.PENDING,
         });
         const savedJob = await this.jobRepository.save(job);
+
+        // Emit job created event
+        this.jobsGateway.emitJobCreated(savedJob);
 
         // Add to BullMQ queue
         // We simulate a duration between 5s and 15s

@@ -11,10 +11,10 @@ export interface Job {
   nanoId: string;
   name: string;
   status: JobStatus;
-  startedAt: string | null;
-  completedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class UpdateJobStatusDto {

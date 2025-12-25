@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import {
   JobSocketEvent,
   type JobStatusUpdatedPayload,
+  type JobCreatedPayload,
   type Job,
   ApiRoutes,
 } from "@job-queue-monitor/shared";
@@ -23,6 +24,29 @@ export const useJobSocket = () => {
 
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
+    });
+
+    socket.on(JobSocketEvent.JOB_CREATED, (payload: JobCreatedPayload) => {
+      console.log("Job created:", payload);
+
+      // Update the list view
+      mutate(
+        (key) => typeof key === "string" && key.startsWith(ApiRoutes.JOBS),
+        (currentData: Job | Job[] | undefined) => {
+          if (!currentData) return currentData;
+
+          if (Array.isArray(currentData)) {
+            // Check if job already exists (e.g. from optimistic update)
+            if (currentData.some((j) => j.nanoId === payload.job.nanoId)) {
+              return currentData;
+            }
+            return [payload.job, ...currentData];
+          }
+
+          return currentData;
+        },
+        { revalidate: false }
+      );
     });
 
     socket.on(
