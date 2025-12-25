@@ -11,9 +11,13 @@ import {
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { Job } from './entities/job.entity';
-import { CreateJobDto, UpdateJobStatusDto } from '@job-queue-monitor/shared';
+import {
+    CreateJobDto,
+    UpdateJobStatusDto,
+    ApiRoutes,
+} from '@job-queue-monitor/shared';
 
-@Controller('jobs')
+@Controller(ApiRoutes.JOBS)
 @UseInterceptors(ClassSerializerInterceptor)
 export class JobsController {
     constructor(private readonly jobsService: JobsService) {}

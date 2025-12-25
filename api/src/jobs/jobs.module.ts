@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JobsController } from './jobs.controller';
 import { JobsService } from './jobs.service';
 import { JobsProcessor } from './jobs.processor';
+import { JobsGateway } from './jobs.gateway';
 import { Job } from './entities/job.entity';
 import { ConfigNamespace } from '../config/config-names.enum';
 import { RedisConfig } from '../config/redis.config';
@@ -38,7 +39,7 @@ import { JOB_QUEUE_NAME } from './jobs.constants';
         }),
     ],
     controllers: [JobsController],
-    providers: [JobsService, JobsProcessor],
+    providers: [JobsService, JobsProcessor, JobsGateway],
     exports: [JobsService],
 })
 export class JobsModule {}

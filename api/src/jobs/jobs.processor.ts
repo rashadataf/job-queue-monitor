@@ -4,12 +4,16 @@ import { JobsService } from './jobs.service';
 import { JobStatus } from '@job-queue-monitor/shared';
 import { Logger } from '@nestjs/common';
 import { JOB_QUEUE_NAME } from './jobs.constants';
+import { JobsGateway } from './jobs.gateway';
 
 @Processor(JOB_QUEUE_NAME)
 export class JobsProcessor extends WorkerHost {
     private readonly logger = new Logger(JobsProcessor.name);
 
-    constructor(private readonly jobsService: JobsService) {
+    constructor(
+        private readonly jobsService: JobsService,
+        private readonly jobsGateway: JobsGateway,
+    ) {
         super();
     }
 
@@ -21,6 +25,11 @@ export class JobsProcessor extends WorkerHost {
 
         // 1. Update status to RUNNING
         await this.jobsService.updateStatusByNanoId(nanoId, JobStatus.RUNNING);
+        this.jobsGateway.emitJobStatusUpdate({
+            nanoId,
+            status: JobStatus.RUNNING,
+            timestamp: new Date().toISOString(),
+        });
 
         // 2. Simulate work (sleep)
         await new Promise((resolve) => setTimeout(resolve, duration));
@@ -31,6 +40,11 @@ export class JobsProcessor extends WorkerHost {
                 nanoId,
                 JobStatus.FAILED,
             );
+            this.jobsGateway.emitJobStatusUpdate({
+                nanoId,
+                status: JobStatus.FAILED,
+                timestamp: new Date().toISOString(),
+            });
             throw new Error('Random simulated failure occurred!');
         }
 
@@ -39,6 +53,11 @@ export class JobsProcessor extends WorkerHost {
             nanoId,
             JobStatus.COMPLETED,
         );
+        this.jobsGateway.emitJobStatusUpdate({
+            nanoId,
+            status: JobStatus.COMPLETED,
+            timestamp: new Date().toISOString(),
+        });
         this.logger.log(`Job ${nanoId} completed`);
     }
 }
