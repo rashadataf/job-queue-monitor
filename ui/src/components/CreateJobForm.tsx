@@ -17,6 +17,7 @@ export const CreateJobForm = () => {
     const [name, setName] = useState('');
     const [type, setType] = useState<JobType>(JobType.MOCK);
     const [data, setData] = useState<Partial<JobData>>({});
+    const [rawBody, setRawBody] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { createJob } = useJobs();
@@ -33,9 +34,23 @@ export const CreateJobForm = () => {
         setError(null);
 
         try {
-            await createJob({ name: name.trim(), type, data: data as JobData });
+            const jobData = { ...data } as JobData;
+
+            if (type === JobType.API_CALL) {
+                const apiData = jobData as ApiCallJobData;
+                if (apiData.method === 'POST' && rawBody) {
+                    try {
+                        apiData.body = JSON.parse(rawBody);
+                    } catch {
+                        throw new Error('Invalid JSON body');
+                    }
+                }
+            }
+
+            await createJob({ name: name.trim(), type, data: jobData });
             setName('');
             setData({});
+            setRawBody('');
             setType(JobType.MOCK);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create job');
@@ -71,6 +86,19 @@ export const CreateJobForm = () => {
                                     <MenuItem value="POST">POST</MenuItem>
                                 </Select>
                             </FormControl>
+                            {apiData.method === 'POST' && (
+                                <TextField
+                                    label="Body (JSON)"
+                                    value={rawBody}
+                                    onChange={(e) => setRawBody(e.target.value)}
+                                    multiline
+                                    rows={4}
+                                    fullWidth
+                                    size="small"
+                                    placeholder='{"key": "value"}'
+                                    helperText="Enter valid JSON"
+                                />
+                            )}
                         </>
                     );
                 }
@@ -135,6 +163,7 @@ export const CreateJobForm = () => {
                                 onChange={(e) => {
                                     setType(e.target.value as JobType);
                                     setData({});
+                                    setRawBody('');
                                 }}
                             >
                                 <MenuItem value={JobType.MOCK}>Mock Processing</MenuItem>

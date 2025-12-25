@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
 import { jobsApi } from "@/services/api";
 import {
@@ -6,15 +6,19 @@ import {
   type Job,
   type JobStatus,
   ApiRoutes,
+  type PaginatedResult,
 } from "@job-queue-monitor/shared";
 
 /**
  * Hook for managing the jobs list with CRUD operations
  */
 export function useJobs() {
-  const { data, error, isLoading, mutate } = useSWR<Job[]>(
-    ApiRoutes.JOBS,
-    jobsApi.fetchJobs,
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  const { data, error, isLoading, mutate } = useSWR<PaginatedResult<Job>>(
+    [ApiRoutes.JOBS, page, limit],
+    () => jobsApi.fetchJobs(page, limit),
     {
       refreshInterval: 5000, // Auto-refresh every 5 seconds
       revalidateOnFocus: true,
@@ -27,14 +31,6 @@ export function useJobs() {
    */
   const createJob = useCallback(async (jobData: CreateJobDto): Promise<Job> => {
     const newJob = await jobsApi.createJob(jobData);
-    // Optimistically update the cache
-    // mutate(
-    //   (currentJobs) => {
-    //     if (!currentJobs) return [newJob];
-    //     return [newJob, ...currentJobs];
-    //   },
-    //   { revalidate: false }
-    // );
     return newJob;
   }, []);
 
@@ -46,11 +42,16 @@ export function useJobs() {
   }, [mutate]);
 
   return {
-    jobs: data,
+    jobs: data?.data || [],
+    meta: data?.meta,
     isLoading,
     isError: error,
     createJob,
     refresh,
+    page,
+    setPage,
+    limit,
+    setLimit,
   };
 }
 
