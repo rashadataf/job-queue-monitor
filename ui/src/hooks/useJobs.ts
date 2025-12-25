@@ -1,14 +1,19 @@
 import { useCallback } from "react";
 import useSWR from "swr";
 import { jobsApi } from "@/services/api";
-import type { CreateJobDto, Job, JobStatus } from "@job-queue-monitor/shared";
+import {
+  type CreateJobDto,
+  type Job,
+  type JobStatus,
+  ApiRoutes,
+} from "@job-queue-monitor/shared";
 
 /**
  * Hook for managing the jobs list with CRUD operations
  */
 export function useJobs() {
   const { data, error, isLoading, mutate } = useSWR<Job[]>(
-    "/jobs",
+    ApiRoutes.JOBS,
     jobsApi.fetchJobs,
     {
       refreshInterval: 5000, // Auto-refresh every 5 seconds
@@ -20,15 +25,18 @@ export function useJobs() {
   /**
    * Create a new job
    */
-  const createJob = useCallback(
-    async (jobData: CreateJobDto): Promise<Job> => {
-      const newJob = await jobsApi.createJob(jobData);
-      // Optimistically update the cache
-      await mutate();
-      return newJob;
-    },
-    [mutate]
-  );
+  const createJob = useCallback(async (jobData: CreateJobDto): Promise<Job> => {
+    const newJob = await jobsApi.createJob(jobData);
+    // Optimistically update the cache
+    // mutate(
+    //   (currentJobs) => {
+    //     if (!currentJobs) return [newJob];
+    //     return [newJob, ...currentJobs];
+    //   },
+    //   { revalidate: false }
+    // );
+    return newJob;
+  }, []);
 
   /**
    * Manually refresh the jobs list
@@ -52,7 +60,7 @@ export function useJobs() {
  */
 export function useJob(nanoId: string | null) {
   const { data, error, isLoading, mutate } = useSWR<Job | null>(
-    nanoId ? `/jobs/${nanoId}` : null,
+    nanoId ? `${ApiRoutes.JOBS}/${nanoId}` : null,
     nanoId ? () => jobsApi.fetchJobByNanoId(nanoId) : null,
     {
       refreshInterval: 3000,

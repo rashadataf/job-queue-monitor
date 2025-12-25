@@ -3,6 +3,7 @@ import { ConfigNamespace } from './config-names.enum';
 
 export type AppConfig = {
     port: number;
+    corsOrigin: string | string[];
 };
 
 export default registerAs(ConfigNamespace.App, (): AppConfig => {
@@ -13,7 +14,12 @@ export default registerAs(ConfigNamespace.App, (): AppConfig => {
         throw new Error(`Invalid PORT value: "${portRaw}"`);
     }
 
+    const corsOrigin = process.env.CORS_ORIGIN ?? '*';
+
     return {
         port,
+        corsOrigin: corsOrigin.includes(',')
+            ? corsOrigin.split(',')
+            : corsOrigin,
     };
 });
