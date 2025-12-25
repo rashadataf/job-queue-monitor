@@ -12,9 +12,12 @@ import {
     Job,
 } from '@job-queue-monitor/shared';
 
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+const origin = corsOrigin.includes(',') ? corsOrigin.split(',') : corsOrigin;
+
 @WebSocketGateway({
     cors: {
-        origin: '*', // In production, this should be configured via environment variables
+        origin,
     },
 })
 export class JobsGateway implements OnGatewayConnection, OnGatewayDisconnect {

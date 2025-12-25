@@ -16,6 +16,7 @@ config:
     "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
     "DB_PORT": { type: "string", default: "5432" },
     "REDIS_PORT": { type: "string", default: "6379" },
+    "DOMAIN_NAME": { type: "string", default: "localhost" },
   }
 
 variables:
@@ -33,6 +34,8 @@ variables:
     DB_HOST: "db",
     REDIS_HOST: "redis",
     REDIS_PORT: "${REDIS_PORT}",
+    DOMAIN_NAME: "${DOMAIN_NAME}",
+    CORS_ORIGIN: "http://${DOMAIN_NAME}:${UI_HOST_PORT}",
   }
 
 resources:
@@ -105,6 +108,7 @@ resources:
                 "DB_PASSWORD=${DB_PASSWORD}",
                 "REDIS_HOST=${REDIS_HOST}",
                 "REDIS_PORT=${REDIS_PORT}",
+                "CORS_ORIGIN=${CORS_ORIGIN}",
               ],
             mounts:
               [
