@@ -8,7 +8,12 @@ import {
     Generated,
 } from 'typeorm';
 
-import { JobStatus } from '@job-queue-monitor/shared';
+import {
+    JobStatus,
+    JobType,
+    type JobData,
+    JobResult,
+} from '@job-queue-monitor/shared';
 
 @Entity('jobs')
 export class Job {
@@ -25,11 +30,25 @@ export class Job {
 
     @Column({
         type: 'enum',
+        enum: JobType,
+        default: JobType.MOCK,
+        nullable: false,
+    })
+    type: JobType;
+
+    @Column({
+        type: 'enum',
         enum: JobStatus,
         default: JobStatus.PENDING,
         nullable: false,
     })
     status: JobStatus;
+
+    @Column({ type: 'jsonb', nullable: true })
+    data: JobData;
+
+    @Column({ type: 'jsonb', nullable: true })
+    result: JobResult | null;
 
     @Column({ type: 'timestamp', nullable: true })
     startedAt: Date | null;

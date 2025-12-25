@@ -111,6 +111,45 @@ export const JobDetails = () => {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>Job Details</CardTitle>
+                    <CardDescription>Type and payload information</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Stack spacing={2}>
+                        <Box>
+                            <Typography variant="subtitle2" gutterBottom>Type</Typography>
+                            <Typography variant="body1" sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}>
+                                {job.type}
+                            </Typography>
+                        </Box>
+
+                        {job.data && (
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom>Input Payload</Typography>
+                                <Box sx={{ bgcolor: 'action.hover', p: 2, borderRadius: 1, overflow: 'auto' }}>
+                                    <pre style={{ margin: 0, fontSize: '0.875rem' }}>
+                                        {JSON.stringify(job.data, null, 2)}
+                                    </pre>
+                                </Box>
+                            </Box>
+                        )}
+
+                        {job.result && (
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom>Result</Typography>
+                                <Box sx={{ bgcolor: 'action.hover', p: 2, borderRadius: 1, overflow: 'auto' }}>
+                                    <pre style={{ margin: 0, fontSize: '0.875rem' }}>
+                                        {JSON.stringify(job.result, null, 2)}
+                                    </pre>
+                                </Box>
+                            </Box>
+                        )}
+                    </Stack>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Timeline</CardTitle>
                     <CardDescription>Job execution history</CardDescription>
                 </CardHeader>

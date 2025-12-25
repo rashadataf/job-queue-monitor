@@ -3,9 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { JobStatus } from '@job-queue-monitor/shared';
+import { CreateJobDto, JobStatus, JobResult } from '@job-queue-monitor/shared';
 import { Job } from './entities/job.entity';
-import { CreateJobDto } from './dto/create-job.dto';
 import { JOB_QUEUE_NAME } from './jobs.constants';
 import { JobsGateway } from './jobs.gateway';
 
@@ -35,6 +34,8 @@ export class JobsService {
     async create(createJobDto: CreateJobDto): Promise<Job> {
         const job = this.jobRepository.create({
             name: createJobDto.name,
+            type: createJobDto.type,
+            data: createJobDto.data,
             status: JobStatus.PENDING,
         });
         const savedJob = await this.jobRepository.save(job);
@@ -42,13 +43,10 @@ export class JobsService {
         // Emit job created event
         this.jobsGateway.emitJobCreated(savedJob);
 
-        // Add to BullMQ queue
-        // We simulate a duration between 5s and 15s
-        const duration = Math.floor(Math.random() * 10000) + 5000;
-
         await this.jobQueue.add('process-job', {
             nanoId: savedJob.nanoId,
-            duration,
+            type: savedJob.type,
+            data: savedJob.data,
         });
 
         return savedJob;
@@ -57,6 +55,7 @@ export class JobsService {
     async updateStatusByNanoId(
         nanoId: string,
         status: JobStatus,
+        result?: JobResult,
     ): Promise<Job> {
         const job = await this.findOneByNanoId(nanoId);
         if (!job) {
@@ -64,6 +63,10 @@ export class JobsService {
         }
 
         job.status = status;
+
+        if (result !== undefined) {
+            job.result = result;
+        }
 
         if (status === JobStatus.RUNNING && !job.startedAt) {
             job.startedAt = new Date();
