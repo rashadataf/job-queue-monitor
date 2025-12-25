@@ -18,13 +18,22 @@ const statusConfig = {
 
 export const JobDetails = () => {
     const { nanoId } = useParams();
-    const { job, isLoading, isError, refresh, updateStatus } = useJob(nanoId ?? null);
+    const { job, isLoading, isError, refresh, updateStatus, retryJob } = useJob(nanoId ?? null);
     const [isUpdating, setIsUpdating] = useState(false);
 
     const handleStatusChange = async (status: JobStatus) => {
         setIsUpdating(true);
         try {
             await updateStatus(status);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleRetry = async () => {
+        setIsUpdating(true);
+        try {
+            await retryJob();
         } finally {
             setIsUpdating(false);
         }
@@ -101,7 +110,7 @@ export const JobDetails = () => {
                             </>
                         )}
                         {(job.status === JobStatus.FAILED || job.status === JobStatus.COMPLETED) && (
-                            <Button variant={ButtonVariant.SECONDARY} onClick={() => handleStatusChange(JobStatus.PENDING)} disabled={isUpdating} startIcon={<Refresh />}>
+                            <Button variant={ButtonVariant.SECONDARY} onClick={handleRetry} disabled={isUpdating} startIcon={<Refresh />}>
                                 Retry Job
                             </Button>
                         )}

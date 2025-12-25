@@ -52,6 +52,37 @@ export class JobsService {
         return savedJob;
     }
 
+    async retryJob(nanoId: string): Promise<Job> {
+        const job = await this.findOneByNanoId(nanoId);
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${nanoId} not found`);
+        }
+
+        // Reset job state
+        job.status = JobStatus.PENDING;
+        job.startedAt = null;
+        job.completedAt = null;
+        job.result = null;
+
+        const savedJob = await this.jobRepository.save(job);
+
+        // Emit status update
+        this.jobsGateway.emitJobStatusUpdate({
+            nanoId: savedJob.nanoId,
+            status: JobStatus.PENDING,
+            timestamp: new Date().toISOString(),
+        });
+
+        // Re-add to BullMQ queue
+        await this.jobQueue.add('process-job', {
+            nanoId: savedJob.nanoId,
+            type: savedJob.type,
+            data: savedJob.data,
+        });
+
+        return savedJob;
+    }
+
     async updateStatusByNanoId(
         nanoId: string,
         status: JobStatus,

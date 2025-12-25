@@ -82,11 +82,18 @@ export function useJob(nanoId: string | null) {
     [nanoId, mutate]
   );
 
+  const retryJob = useCallback(async () => {
+    if (!nanoId) return;
+    await jobsApi.retryJob(nanoId);
+    mutate();
+  }, [nanoId, mutate]);
+
   return {
     job: data,
     isLoading,
     isError: error,
     refresh,
     updateStatus,
+    retryJob,
   };
 }
