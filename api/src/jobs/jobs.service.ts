@@ -3,7 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { CreateJobDto, JobStatus, JobResult } from '@job-queue-monitor/shared';
+import {
+    CreateJobDto,
+    JobStatus,
+    JobResult,
+    JobQueryParams,
+    SortField,
+    SortOrder,
+} from '@job-queue-monitor/shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
 import { JobsGateway } from './jobs.gateway';
@@ -20,6 +27,7 @@ export class JobsService {
     async findAll(
         page: number = 1,
         limit: number = 10,
+        queryParams?: JobQueryParams,
     ): Promise<{
         data: Job[];
         meta: {
@@ -29,11 +37,27 @@ export class JobsService {
             totalPages: number;
         };
     }> {
-        const [data, total] = await this.jobRepository.findAndCount({
-            order: { createdAt: 'DESC' },
-            skip: (page - 1) * limit,
-            take: limit,
-        });
+        const queryBuilder = this.jobRepository.createQueryBuilder('job');
+
+        // Apply status filter
+        if (queryParams?.status) {
+            queryBuilder.andWhere('job.status = :status', {
+                status: queryParams.status,
+            });
+        }
+
+        // Apply sorting
+        const sortBy = queryParams?.sortBy || SortField.CREATED_AT;
+        const sortOrder = queryParams?.sortOrder || SortOrder.DESC;
+        queryBuilder.orderBy(
+            `job.${sortBy}`,
+            sortOrder.toUpperCase() as 'ASC' | 'DESC',
+        );
+
+        // Apply pagination
+        queryBuilder.skip((page - 1) * limit).take(limit);
+
+        const [data, total] = await queryBuilder.getManyAndCount();
 
         return {
             data,

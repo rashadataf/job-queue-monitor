@@ -19,6 +19,9 @@ import {
     UpdateJobStatusDto,
     ApiRoutes,
     PaginatedResult,
+    JobStatus,
+    SortField,
+    SortOrder,
 } from '@job-queue-monitor/shared';
 
 @Controller(ApiRoutes.JOBS)
@@ -30,8 +33,15 @@ export class JobsController {
     async findAll(
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+        @Query('status') status?: JobStatus,
+        @Query('sortBy') sortBy?: SortField,
+        @Query('sortOrder') sortOrder?: SortOrder,
     ): Promise<PaginatedResult<Job>> {
-        return this.jobsService.findAll(page, limit);
+        return this.jobsService.findAll(page, limit, {
+            status,
+            sortBy,
+            sortOrder,
+        });
     }
 
     @Get(':nanoId')

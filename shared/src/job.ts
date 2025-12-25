@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsString, IsOptional, IsObject } from "class-validator";
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsObject,
+} from "class-validator";
 
 export enum JobStatus {
   PENDING = "pending",
@@ -48,7 +54,31 @@ export interface ErrorJobResult {
 }
 
 export type JobData = MockJobData | ApiCallJobData | MathJobData;
-export type JobResult = MockJobResult | ApiCallJobResult | MathJobResult | ErrorJobResult;
+export type JobResult =
+  | MockJobResult
+  | ApiCallJobResult
+  | MathJobResult
+  | ErrorJobResult;
+
+export enum SortField {
+  CREATED_AT = "createdAt",
+  UPDATED_AT = "updatedAt",
+  STARTED_AT = "startedAt",
+  COMPLETED_AT = "completedAt",
+}
+
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+
+export interface JobQueryParams {
+  page?: number;
+  limit?: number;
+  status?: JobStatus;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
+}
 
 export interface Job {
   nanoId: string;
