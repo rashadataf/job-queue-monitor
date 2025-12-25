@@ -7,6 +7,9 @@ import {
   type JobStatus,
   ApiRoutes,
   type PaginatedResult,
+  type JobQueryParams,
+  SortField,
+  SortOrder,
 } from "@job-queue-monitor/shared";
 
 /**
@@ -15,10 +18,19 @@ import {
 export function useJobs() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [status, setStatus] = useState<JobStatus | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<SortField>(SortField.CREATED_AT);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
+
+  const queryParams: Omit<JobQueryParams, "page" | "limit"> = {
+    status,
+    sortBy,
+    sortOrder,
+  };
 
   const { data, error, isLoading, mutate } = useSWR<PaginatedResult<Job>>(
-    [ApiRoutes.JOBS, page, limit],
-    () => jobsApi.fetchJobs(page, limit),
+    [ApiRoutes.JOBS, page, limit, status, sortBy, sortOrder],
+    () => jobsApi.fetchJobs(page, limit, queryParams),
     {
       refreshInterval: 5000, // Auto-refresh every 5 seconds
       revalidateOnFocus: true,
@@ -52,6 +64,12 @@ export function useJobs() {
     setPage,
     limit,
     setLimit,
+    status,
+    setStatus,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
   };
 }
 

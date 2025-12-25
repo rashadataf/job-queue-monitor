@@ -4,6 +4,7 @@ import {
   type JobStatus,
   ApiRoutes,
   type PaginatedResult,
+  type JobQueryParams,
 } from "@job-queue-monitor/shared";
 import axios from "axios";
 
@@ -17,9 +18,13 @@ export const api = axios.create({
 });
 
 export const jobsApi = {
-  async fetchJobs(page = 1, limit = 10): Promise<PaginatedResult<Job>> {
+  async fetchJobs(
+    page = 1,
+    limit = 10,
+    queryParams?: Omit<JobQueryParams, "page" | "limit">
+  ): Promise<PaginatedResult<Job>> {
     const response = await api.get<PaginatedResult<Job>>(ApiRoutes.JOBS, {
-      params: { page, limit },
+      params: { page, limit, ...queryParams },
     });
     return response.data;
   },
