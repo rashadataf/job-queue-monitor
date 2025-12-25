@@ -16,7 +16,7 @@ const statusConfig = {
 };
 
 export const JobsList = () => {
-    const { jobs, isLoading, isError, refresh } = useJobs();
+    const { jobs, meta, isLoading, isError, refresh, page, setPage } = useJobs();
 
     if (isLoading) {
         return (
@@ -88,6 +88,27 @@ export const JobsList = () => {
                     );
                 })}
             </List>
+            {meta && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, borderTop: '1px solid rgba(0, 0, 0, 0.12)' }}>
+                    <Button
+                        variant={ButtonVariant.OUTLINE}
+                        disabled={page === 1}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                    >
+                        Previous
+                    </Button>
+                    <Typography variant="body2" color="text.secondary">
+                        Page {meta.page} of {meta.totalPages}
+                    </Typography>
+                    <Button
+                        variant={ButtonVariant.OUTLINE}
+                        disabled={page >= meta.totalPages}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        Next
+                    </Button>
+                </Box>
+            )}
         </Card>
     );
 }

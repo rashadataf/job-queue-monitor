@@ -8,6 +8,9 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Patch,
+    Query,
+    DefaultValuePipe,
+    ParseIntPipe,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { Job } from './entities/job.entity';
@@ -15,6 +18,7 @@ import {
     CreateJobDto,
     UpdateJobStatusDto,
     ApiRoutes,
+    PaginatedResult,
 } from '@job-queue-monitor/shared';
 
 @Controller(ApiRoutes.JOBS)
@@ -23,9 +27,11 @@ export class JobsController {
     constructor(private readonly jobsService: JobsService) {}
 
     @Get()
-    async findAll(): Promise<Job[]> {
-        const jobs = await this.jobsService.findAll();
-        return jobs;
+    async findAll(
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    ): Promise<PaginatedResult<Job>> {
+        return this.jobsService.findAll(page, limit);
     }
 
     @Get(':nanoId')

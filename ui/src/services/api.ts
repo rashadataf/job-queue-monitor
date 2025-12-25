@@ -3,6 +3,7 @@ import {
   type Job,
   type JobStatus,
   ApiRoutes,
+  type PaginatedResult,
 } from "@job-queue-monitor/shared";
 import axios from "axios";
 
@@ -16,8 +17,10 @@ export const api = axios.create({
 });
 
 export const jobsApi = {
-  async fetchJobs(): Promise<Job[]> {
-    const response = await api.get<Job[]>(ApiRoutes.JOBS);
+  async fetchJobs(page = 1, limit = 10): Promise<PaginatedResult<Job>> {
+    const response = await api.get<PaginatedResult<Job>>(ApiRoutes.JOBS, {
+      params: { page, limit },
+    });
     return response.data;
   },
 

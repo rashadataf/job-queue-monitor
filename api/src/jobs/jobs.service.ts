@@ -17,10 +17,33 @@ export class JobsService {
         private readonly jobsGateway: JobsGateway,
     ) {}
 
-    async findAll(): Promise<Job[]> {
-        return this.jobRepository.find({
+    async findAll(
+        page: number = 1,
+        limit: number = 10,
+    ): Promise<{
+        data: Job[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }> {
+        const [data, total] = await this.jobRepository.findAndCount({
             order: { createdAt: 'DESC' },
+            skip: (page - 1) * limit,
+            take: limit,
         });
+
+        return {
+            data,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
     }
 
     async findOne(id: number): Promise<Job | null> {
