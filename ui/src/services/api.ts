@@ -38,4 +38,9 @@ export const jobsApi = {
     );
     return response.data;
   },
+
+  async retryJob(nanoId: string): Promise<Job> {
+    const response = await api.post<Job>(`${ApiRoutes.JOBS}/${nanoId}/retry`);
+    return response.data;
+  },
 };

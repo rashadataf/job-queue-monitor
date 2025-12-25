@@ -42,6 +42,11 @@ export class JobsController {
         return this.jobsService.create(createJobDto);
     }
 
+    @Post(':nanoId/retry')
+    async retry(@Param('nanoId') nanoId: string): Promise<Job> {
+        return this.jobsService.retryJob(nanoId);
+    }
+
     @Patch(':nanoId/status')
     async updateStatus(
         @Param('nanoId') nanoId: string,
