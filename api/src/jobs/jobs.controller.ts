@@ -11,6 +11,7 @@ import {
     Query,
     DefaultValuePipe,
     ParseIntPipe,
+    Delete,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { Job } from './entities/job.entity';
@@ -72,5 +73,13 @@ export class JobsController {
             nanoId,
             updateJobStatusDto.status,
         );
+    }
+
+    @Delete(':nanoId')
+    async delete(
+        @Param('nanoId') nanoId: string,
+    ): Promise<{ message: string }> {
+        await this.jobsService.deleteJob(nanoId);
+        return { message: `Job ${nanoId} deleted successfully` };
     }
 }

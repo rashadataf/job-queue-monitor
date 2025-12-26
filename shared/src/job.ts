@@ -4,6 +4,10 @@ import {
   IsString,
   IsOptional,
   IsObject,
+  IsBoolean,
+  IsInt,
+  Min,
+  Max,
 } from "class-validator";
 
 export enum JobStatus {
@@ -19,8 +23,16 @@ export enum JobType {
   MATH = "math",
 }
 
+export enum JobPriority {
+  CRITICAL = 1,  // Highest priority (lowest number)
+  HIGH = 2,
+  NORMAL = 3,
+  LOW = 4,       // Lowest priority (highest number)
+}
+
 export interface MockJobData {
   duration?: number;
+  shouldFail?: boolean;
 }
 
 export interface MockJobResult {
@@ -85,6 +97,10 @@ export interface Job {
   name: string;
   type: JobType;
   status: JobStatus;
+  priority: JobPriority;
+  autoRetry: boolean;
+  maxRetries: number;
+  retryCount: number;
   data: JobData;
   result: JobResult | null;
   startedAt: Date | null;
@@ -107,6 +123,20 @@ export class CreateJobDto {
   @IsEnum(JobType)
   @IsNotEmpty()
   type: JobType;
+
+  @IsEnum(JobPriority)
+  @IsOptional()
+  priority?: JobPriority;
+
+  @IsBoolean()
+  @IsOptional()
+  autoRetry?: boolean;
+
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  @IsOptional()
+  maxRetries?: number;
 
   @IsObject()
   @IsOptional()

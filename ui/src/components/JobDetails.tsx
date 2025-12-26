@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowBack, AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, Refresh, CalendarToday, Timer } from '@mui/icons-material';
-import { CircularProgress, Box, Typography, Stack, Divider } from '@mui/material';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowBack, AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, Refresh, CalendarToday, Timer, PriorityHigh, Autorenew, Delete } from '@mui/icons-material';
+import { CircularProgress, Box, Typography, Stack, Divider, Chip, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useJob } from '@/hooks/useJobs';
-import { JobStatus } from '@job-queue-monitor/shared';
+import { JobStatus, JobPriority } from '@job-queue-monitor/shared';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -16,10 +16,19 @@ const statusConfig = {
     [JobStatus.FAILED]: { icon: <ErrorIcon fontSize="small" />, label: 'Failed' },
 };
 
+const priorityConfig = {
+    [JobPriority.LOW]: { label: 'Low', color: 'default' as const },
+    [JobPriority.NORMAL]: { label: 'Normal', color: 'primary' as const },
+    [JobPriority.HIGH]: { label: 'High', color: 'warning' as const },
+    [JobPriority.CRITICAL]: { label: 'Critical', color: 'error' as const },
+};
+
 export const JobDetails = () => {
     const { nanoId } = useParams();
-    const { job, isLoading, isError, refresh, updateStatus, retryJob } = useJob(nanoId ?? null);
+    const navigate = useNavigate();
+    const { job, isLoading, isError, refresh, updateStatus, retryJob, deleteJob } = useJob(nanoId ?? null);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const handleStatusChange = async (status: JobStatus) => {
         setIsUpdating(true);
@@ -36,6 +45,19 @@ export const JobDetails = () => {
             await retryJob();
         } finally {
             setIsUpdating(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        setIsUpdating(true);
+        try {
+            await deleteJob();
+            navigate('/');
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Failed to delete job');
+        } finally {
+            setIsUpdating(false);
+            setDeleteDialogOpen(false);
         }
     };
 
@@ -79,7 +101,23 @@ export const JobDetails = () => {
                             <CardTitle>{job.name}</CardTitle>
                             <CardDescription>ID: {job.nanoId}</CardDescription>
                         </Box>
-                        <Badge variant={job.status} label={config.label} icon={config.icon} />
+                        <Box display="flex" gap={1} flexWrap="wrap">
+                            <Badge variant={job.status} label={config.label} icon={config.icon} />
+                            <Chip
+                                icon={<PriorityHigh fontSize="small" />}
+                                label={priorityConfig[job.priority].label}
+                                color={priorityConfig[job.priority].color}
+                                size="small"
+                            />
+                            {job.autoRetry && (
+                                <Chip
+                                    icon={<Autorenew fontSize="small" />}
+                                    label={`Retry ${job.retryCount}/${job.maxRetries}`}
+                                    color="info"
+                                    size="small"
+                                />
+                            )}
+                        </Box>
                     </Box>
                 </CardHeader>
             </Card>
@@ -110,9 +148,19 @@ export const JobDetails = () => {
                             </>
                         )}
                         {(job.status === JobStatus.FAILED || job.status === JobStatus.COMPLETED) && (
-                            <Button variant={ButtonVariant.SECONDARY} onClick={handleRetry} disabled={isUpdating} startIcon={<Refresh />}>
-                                Retry Job
-                            </Button>
+                            <>
+                                <Button variant={ButtonVariant.SECONDARY} onClick={handleRetry} disabled={isUpdating} startIcon={<Refresh />}>
+                                    Retry Job
+                                </Button>
+                                <Button 
+                                    variant={ButtonVariant.DESTRUCTIVE} 
+                                    onClick={() => setDeleteDialogOpen(true)} 
+                                    disabled={isUpdating} 
+                                    startIcon={<Delete />}
+                                >
+                                    Delete Job
+                                </Button>
+                            </>
                         )}
                     </Stack>
                 </CardContent>
@@ -131,6 +179,22 @@ export const JobDetails = () => {
                                 {job.type}
                             </Typography>
                         </Box>
+
+                        <Box>
+                            <Typography variant="subtitle2" gutterBottom>Priority</Typography>
+                            <Typography variant="body1">
+                                {priorityConfig[job.priority].label}
+                            </Typography>
+                        </Box>
+
+                        {job.autoRetry && (
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom>Auto-Retry</Typography>
+                                <Typography variant="body1">
+                                    Enabled ({job.retryCount} of {job.maxRetries} attempts used)
+                                </Typography>
+                            </Box>
+                        )}
 
                         {job.data && (
                             <Box>
@@ -227,6 +291,30 @@ export const JobDetails = () => {
                     </Stack>
                 </CardContent>
             </Card>
+
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+            >
+                <DialogTitle>Delete Job?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this job? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteDialogOpen(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDelete}
+                        variant={ButtonVariant.DESTRUCTIVE}
+                        disabled={isUpdating}
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

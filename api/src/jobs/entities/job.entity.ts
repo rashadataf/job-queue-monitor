@@ -11,6 +11,7 @@ import {
 import {
     JobStatus,
     JobType,
+    JobPriority,
     type JobData,
     JobResult,
 } from '@job-queue-monitor/shared';
@@ -43,6 +44,22 @@ export class Job {
         nullable: false,
     })
     status: JobStatus;
+
+    @Column({
+        type: 'int',
+        default: JobPriority.NORMAL,
+        nullable: false,
+    })
+    priority: JobPriority;
+
+    @Column({ type: 'boolean', default: false, nullable: false })
+    autoRetry: boolean;
+
+    @Column({ type: 'int', default: 3, nullable: false })
+    maxRetries: number;
+
+    @Column({ type: 'int', default: 0, nullable: false })
+    retryCount: number;
 
     @Column({ type: 'jsonb', nullable: true })
     data: JobData;

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    BadRequestException,
+    Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -10,6 +15,7 @@ import {
     JobQueryParams,
     SortField,
     SortOrder,
+    JobPriority,
 } from '@job-queue-monitor/shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
@@ -17,6 +23,8 @@ import { JobsGateway } from './jobs.gateway';
 
 @Injectable()
 export class JobsService {
+    private readonly logger = new Logger(JobsService.name);
+
     constructor(
         @InjectRepository(Job)
         private jobRepository: Repository<Job>,
@@ -84,22 +92,36 @@ export class JobsService {
             type: createJobDto.type,
             data: createJobDto.data,
             status: JobStatus.PENDING,
+            priority: createJobDto.priority || JobPriority.NORMAL,
+            autoRetry: createJobDto.autoRetry || false,
+            maxRetries: createJobDto.maxRetries || 3,
+            retryCount: 0,
         });
         const savedJob = await this.jobRepository.save(job);
 
         // Emit job created event
         this.jobsGateway.emitJobCreated(savedJob);
 
-        await this.jobQueue.add('process-job', {
-            nanoId: savedJob.nanoId,
-            type: savedJob.type,
-            data: savedJob.data,
-        });
+        this.logger.log(
+            `Adding job ${savedJob.nanoId} to queue with priority ${savedJob.priority}`,
+        );
+
+        await this.jobQueue.add(
+            'process-job',
+            {
+                nanoId: savedJob.nanoId,
+                type: savedJob.type,
+                data: savedJob.data,
+            },
+            {
+                priority: savedJob.priority,
+            },
+        );
 
         return savedJob;
     }
 
-    async retryJob(nanoId: string): Promise<Job> {
+    async retryJob(nanoId: string, delay?: number): Promise<Job> {
         const job = await this.findOneByNanoId(nanoId);
         if (!job) {
             throw new NotFoundException(`Job with ID ${nanoId} not found`);
@@ -110,22 +132,29 @@ export class JobsService {
         job.startedAt = null;
         job.completedAt = null;
         job.result = null;
+        job.retryCount += 1;
 
         const savedJob = await this.jobRepository.save(job);
 
         // Emit status update
         this.jobsGateway.emitJobStatusUpdate({
-            nanoId: savedJob.nanoId,
-            status: JobStatus.PENDING,
+            job: savedJob,
             timestamp: new Date().toISOString(),
         });
 
-        // Re-add to BullMQ queue
-        await this.jobQueue.add('process-job', {
-            nanoId: savedJob.nanoId,
-            type: savedJob.type,
-            data: savedJob.data,
-        });
+        // Re-add to BullMQ queue with priority and optional delay
+        await this.jobQueue.add(
+            'process-job',
+            {
+                nanoId: savedJob.nanoId,
+                type: savedJob.type,
+                data: savedJob.data,
+            },
+            {
+                priority: savedJob.priority,
+                delay: delay, // Delay in milliseconds
+            },
+        );
 
         return savedJob;
     }
@@ -190,5 +219,21 @@ export class JobsService {
         }
 
         return this.jobRepository.save(job);
+    }
+
+    async deleteJob(nanoId: string): Promise<void> {
+        const job = await this.findOneByNanoId(nanoId);
+        if (!job) {
+            throw new NotFoundException(`Job with ID ${nanoId} not found`);
+        }
+
+        // Prevent deletion of running jobs
+        if (job.status === JobStatus.RUNNING) {
+            throw new BadRequestException(
+                'Cannot delete a running job. Please wait for it to complete or fail.',
+            );
+        }
+
+        await this.jobRepository.remove(job);
     }
 }

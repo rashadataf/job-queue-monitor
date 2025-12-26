@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh } from '@mui/icons-material';
-import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton } from '@mui/material';
+import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew } from '@mui/icons-material';
+import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip } from '@mui/material';
 import { useJobs } from '@/hooks/useJobs';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { JobFilters } from '@/components/JobFilters';
-import { JobStatus } from '@job-queue-monitor/shared';
+import { JobStatus, JobPriority } from '@job-queue-monitor/shared';
 import { ButtonVariant } from '@/types/button';
 
 const statusConfig = {
@@ -14,6 +14,13 @@ const statusConfig = {
     [JobStatus.RUNNING]: { icon: <PlayArrow fontSize="small" />, label: 'Running' },
     [JobStatus.COMPLETED]: { icon: <CheckCircle fontSize="small" />, label: 'Completed' },
     [JobStatus.FAILED]: { icon: <ErrorIcon fontSize="small" />, label: 'Failed' },
+};
+
+const priorityConfig = {
+    [JobPriority.LOW]: { label: 'Low', color: 'default' as const },
+    [JobPriority.NORMAL]: { label: 'Normal', color: 'primary' as const },
+    [JobPriority.HIGH]: { label: 'High', color: 'warning' as const },
+    [JobPriority.CRITICAL]: { label: 'Critical', color: 'error' as const },
 };
 
 export const JobsList = () => {
@@ -97,7 +104,29 @@ export const JobsList = () => {
                                         {config.icon}
                                     </ListItemIcon>
                                     <ListItemText
-                                        primary={job.name}
+                                        primary={
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <span>{job.name}</span>
+                                                {job.priority !== JobPriority.NORMAL && (
+                                                    <Chip
+                                                        icon={<PriorityHigh sx={{ fontSize: '14px !important' }} />}
+                                                        label={priorityConfig[job.priority].label}
+                                                        color={priorityConfig[job.priority].color}
+                                                        size="small"
+                                                        sx={{ height: 20, fontSize: '0.7rem' }}
+                                                    />
+                                                )}
+                                                {job.autoRetry && job.retryCount > 0 && (
+                                                    <Chip
+                                                        icon={<Autorenew sx={{ fontSize: '14px !important' }} />}
+                                                        label={`${job.retryCount}/${job.maxRetries}`}
+                                                        color="info"
+                                                        size="small"
+                                                        sx={{ height: 20, fontSize: '0.7rem' }}
+                                                    />
+                                                )}
+                                            </Box>
+                                        }
                                         secondary={`ID: ${job.nanoId}`}
                                     />
                                     <Badge variant={job.status} label={config.label} />

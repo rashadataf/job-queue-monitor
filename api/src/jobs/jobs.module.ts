@@ -36,6 +36,11 @@ import { JOB_QUEUE_NAME } from './jobs.constants';
         }),
         BullModule.registerQueue({
             name: JOB_QUEUE_NAME,
+            defaultJobOptions: {
+                attempts: 1, // We handle retries manually
+                removeOnComplete: false,
+                removeOnFail: false,
+            },
         }),
     ],
     controllers: [JobsController],

@@ -14,7 +14,9 @@ import { Logger } from '@nestjs/common';
 import { JOB_QUEUE_NAME } from './jobs.constants';
 import { JobsGateway } from './jobs.gateway';
 
-@Processor(JOB_QUEUE_NAME)
+@Processor(JOB_QUEUE_NAME, {
+    concurrency: 1, // Process one job at a time in priority order
+})
 export class JobsProcessor extends WorkerHost {
     private readonly logger = new Logger(JobsProcessor.name);
 
@@ -29,13 +31,17 @@ export class JobsProcessor extends WorkerHost {
         job: Job<{ nanoId: string; type: JobType; data: JobData }>,
     ): Promise<JobResult> {
         const { nanoId, type, data } = job.data;
-        this.logger.log(`Processing job ${nanoId} (Type: ${type})`);
+        this.logger.log(
+            `Processing job ${nanoId} (Type: ${type}, Priority: ${job.opts.priority})`,
+        );
 
         // 1. Update status to RUNNING
-        await this.jobsService.updateStatusByNanoId(nanoId, JobStatus.RUNNING);
-        this.jobsGateway.emitJobStatusUpdate({
+        const runningJob = await this.jobsService.updateStatusByNanoId(
             nanoId,
-            status: JobStatus.RUNNING,
+            JobStatus.RUNNING,
+        );
+        this.jobsGateway.emitJobStatusUpdate({
+            job: runningJob,
             timestamp: new Date().toISOString(),
         });
 
@@ -53,6 +59,14 @@ export class JobsProcessor extends WorkerHost {
                                 : undefined,
                             headers: { 'Content-Type': 'application/json' },
                         });
+
+                        // Check if response is successful (2xx status codes)
+                        if (!response.ok) {
+                            throw new Error(
+                                `API Call failed with status ${response.status}: ${response.statusText}`,
+                            );
+                        }
+
                         let responseData: unknown;
                         const contentType =
                             response.headers.get('content-type');
@@ -96,20 +110,27 @@ export class JobsProcessor extends WorkerHost {
                     await new Promise((resolve) =>
                         setTimeout(resolve, duration),
                     );
+
+                    // Simulate failure if requested
+                    if (mockData.shouldFail) {
+                        throw new Error(
+                            'Mock job intentionally failed for testing',
+                        );
+                    }
+
                     result = { message: 'Mock job completed', duration };
                     break;
                 }
             }
 
             // 3. Update status to COMPLETED
-            await this.jobsService.updateStatusByNanoId(
+            const completedJob = await this.jobsService.updateStatusByNanoId(
                 nanoId,
                 JobStatus.COMPLETED,
                 result,
             );
             this.jobsGateway.emitJobStatusUpdate({
-                nanoId,
-                status: JobStatus.COMPLETED,
+                job: completedJob,
                 timestamp: new Date().toISOString(),
             });
             this.logger.log(`Job ${nanoId} completed`);
@@ -122,14 +143,42 @@ export class JobsProcessor extends WorkerHost {
                 `Job ${nanoId} failed: ${err.message}`,
                 err.stack,
             );
-            await this.jobsService.updateStatusByNanoId(
+
+            // Get the job from database to check auto-retry settings
+            const jobEntity = await this.jobsService.findOneByNanoId(nanoId);
+
+            if (
+                jobEntity &&
+                jobEntity.autoRetry &&
+                jobEntity.retryCount < jobEntity.maxRetries
+            ) {
+                this.logger.log(
+                    `Auto-retrying job ${nanoId} (Attempt ${jobEntity.retryCount + 1}/${jobEntity.maxRetries})`,
+                );
+
+                // Calculate exponential backoff delay
+                const retryDelay = Math.min(
+                    1000 * Math.pow(2, jobEntity.retryCount),
+                    30000,
+                ); // Max 30 seconds
+
+                // Schedule retry with delay (non-blocking - allows other jobs to process)
+                await this.jobsService.retryJob(nanoId, retryDelay);
+
+                this.logger.log(
+                    `Job ${nanoId} scheduled for retry in ${retryDelay}ms`,
+                );
+
+                throw err; // Still throw to mark this attempt as failed
+            }
+
+            const failedJob = await this.jobsService.updateStatusByNanoId(
                 nanoId,
                 JobStatus.FAILED,
                 { error: err.message },
             );
             this.jobsGateway.emitJobStatusUpdate({
-                nanoId,
-                status: JobStatus.FAILED,
+                job: failedJob,
                 timestamp: new Date().toISOString(),
             });
             throw err;
