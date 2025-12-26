@@ -90,6 +90,7 @@ export interface JobQueryParams {
   status?: JobStatus;
   sortBy?: SortField;
   sortOrder?: SortOrder;
+  search?: string;
 }
 
 export interface Job {

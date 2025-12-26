@@ -37,11 +37,13 @@ export class JobsController {
         @Query('status') status?: JobStatus,
         @Query('sortBy') sortBy?: SortField,
         @Query('sortOrder') sortOrder?: SortOrder,
+        @Query('search') search?: string,
     ): Promise<PaginatedResult<Job>> {
         return this.jobsService.findAll(page, limit, {
             status,
             sortBy,
             sortOrder,
+            search,
         });
     }
 
