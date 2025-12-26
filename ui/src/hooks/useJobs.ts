@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import useSWR from "swr";
 import { jobsApi } from "@/services/api";
 import {
@@ -21,15 +21,28 @@ export function useJobs() {
   const [status, setStatus] = useState<JobStatus | undefined>(undefined);
   const [sortBy, setSortBy] = useState<SortField>(SortField.CREATED_AT);
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to page 1 when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const queryParams: Omit<JobQueryParams, "page" | "limit"> = {
     status,
     sortBy,
     sortOrder,
+    search: debouncedSearch || undefined,
   };
 
   const { data, error, isLoading, mutate } = useSWR<PaginatedResult<Job>>(
-    [ApiRoutes.JOBS, page, limit, status, sortBy, sortOrder],
+    [ApiRoutes.JOBS, page, limit, status, sortBy, sortOrder, debouncedSearch],
     () => jobsApi.fetchJobs(page, limit, queryParams),
     {
       refreshInterval: 5000, // Auto-refresh every 5 seconds
@@ -53,6 +66,22 @@ export function useJobs() {
     mutate();
   }, [mutate]);
 
+  // Wrapper functions that reset page when filters change
+  const handleSetStatus = useCallback((newStatus: JobStatus | undefined) => {
+    setStatus(newStatus);
+    setPage(1);
+  }, []);
+
+  const handleSetSortBy = useCallback((newSortBy: SortField) => {
+    setSortBy(newSortBy);
+    setPage(1);
+  }, []);
+
+  const handleSetSortOrder = useCallback((newSortOrder: SortOrder) => {
+    setSortOrder(newSortOrder);
+    setPage(1);
+  }, []);
+
   return {
     jobs: data?.data || [],
     meta: data?.meta,
@@ -65,11 +94,13 @@ export function useJobs() {
     limit,
     setLimit,
     status,
-    setStatus,
+    setStatus: handleSetStatus,
     sortBy,
-    setSortBy,
+    setSortBy: handleSetSortBy,
     sortOrder,
-    setSortOrder,
+    setSortOrder: handleSetSortOrder,
+    search,
+    setSearch,
   };
 }
 

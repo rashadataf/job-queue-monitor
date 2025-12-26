@@ -5,7 +5,7 @@ import {
     Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import {
@@ -24,6 +24,14 @@ import { JobsGateway } from './jobs.gateway';
 @Injectable()
 export class JobsService {
     private readonly logger = new Logger(JobsService.name);
+
+    // Map SortField enum to actual entity column names for type safety
+    private readonly sortFieldMap: Record<SortField, keyof Job> = {
+        [SortField.CREATED_AT]: 'createdAt',
+        [SortField.UPDATED_AT]: 'updatedAt',
+        [SortField.STARTED_AT]: 'startedAt',
+        [SortField.COMPLETED_AT]: 'completedAt',
+    };
 
     constructor(
         @InjectRepository(Job)
@@ -45,20 +53,31 @@ export class JobsService {
             totalPages: number;
         };
     }> {
-        const queryBuilder = this.jobRepository.createQueryBuilder('job');
+        const alias = Job.name.toLowerCase();
+        const queryBuilder = this.jobRepository.createQueryBuilder(alias);
 
-        // Apply status filter
+        // Apply status filter using object notation (more type-safe)
         if (queryParams?.status) {
-            queryBuilder.andWhere('job.status = :status', {
-                status: queryParams.status,
-            });
+            queryBuilder.andWhere({ status: queryParams.status });
         }
 
-        // Apply sorting
+        // Apply search filter using Brackets for complex OR conditions
+        if (queryParams?.search) {
+            queryBuilder.andWhere(
+                new Brackets((qb) => {
+                    qb.where(`${alias}.name ILIKE :search`, {
+                        search: `%${queryParams.search}%`,
+                    }).orWhere(`CAST(${alias}.nanoId AS TEXT) ILIKE :search`);
+                }),
+            );
+        }
+
+        // Apply sorting with type-safe field mapping
         const sortBy = queryParams?.sortBy || SortField.CREATED_AT;
         const sortOrder = queryParams?.sortOrder || SortOrder.DESC;
+        const sortColumn = this.sortFieldMap[sortBy];
         queryBuilder.orderBy(
-            `job.${sortBy}`,
+            `${alias}.${sortColumn}`,
             sortOrder.toUpperCase() as 'ASC' | 'DESC',
         );
 

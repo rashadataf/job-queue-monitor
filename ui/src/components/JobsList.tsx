@@ -38,6 +38,8 @@ export const JobsList = () => {
         setSortBy,
         sortOrder,
         setSortOrder,
+        search,
+        setSearch,
     } = useJobs();
 
     const renderContent = () => {
@@ -166,9 +168,11 @@ export const JobsList = () => {
                 status={status}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
+                search={search}
                 onStatusChange={setStatus}
                 onSortByChange={setSortBy}
                 onSortOrderChange={setSortOrder}
+                onSearchChange={setSearch}
             />
             {renderContent()}
         </>

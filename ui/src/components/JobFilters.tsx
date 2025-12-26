@@ -6,9 +6,11 @@ import {
   Box,
   IconButton,
   Tooltip,
+  TextField,
+  InputAdornment,
   type SelectChangeEvent,
 } from "@mui/material";
-import { Clear as ClearIcon } from "@mui/icons-material";
+import { Clear as ClearIcon, Search as SearchIcon } from "@mui/icons-material";
 import {
   JobStatus,
   SortField,
@@ -19,18 +21,22 @@ interface JobFiltersProps {
   status: JobStatus | undefined;
   sortBy: SortField;
   sortOrder: SortOrder;
+  search: string;
   onStatusChange: (status: JobStatus | undefined) => void;
   onSortByChange: (sortBy: SortField) => void;
   onSortOrderChange: (sortOrder: SortOrder) => void;
+  onSearchChange: (search: string) => void;
 }
 
 export const JobFilters = ({
   status,
   sortBy,
   sortOrder,
+  search,
   onStatusChange,
   onSortByChange,
   onSortOrderChange,
+  onSearchChange,
 }: JobFiltersProps) => {
   const handleStatusChange = (event: SelectChangeEvent<string>) => {
     const value = event.target.value;
@@ -49,6 +55,14 @@ export const JobFilters = ({
     onStatusChange(undefined);
   };
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(event.target.value);
+  };
+
+  const handleClearSearch = () => {
+    onSearchChange("");
+  };
+
   return (
     <Box
       sx={{
@@ -59,6 +73,30 @@ export const JobFilters = ({
         alignItems: "center",
       }}
     >
+      <TextField
+        size="small"
+        placeholder="Search by name or ID..."
+        value={search}
+        onChange={handleSearchChange}
+        sx={{ minWidth: 250 }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={handleClearSearch}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          },
+        }}
+      />
+
       <FormControl size="small" sx={{ minWidth: 150 }}>
         <InputLabel id="status-filter-label">Status</InputLabel>
         <Select
