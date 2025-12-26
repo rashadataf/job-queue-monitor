@@ -1,5 +1,5 @@
 import { Chip, type ChipProps } from '@mui/material';
-import { JobStatus } from '@job-queue-monitor/shared';
+import { JobStatus } from '@shared';
 
 export interface BadgeProps extends Omit<ChipProps, 'variant' | 'color'> {
   variant?: JobStatus;

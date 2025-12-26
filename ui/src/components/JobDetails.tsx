@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowBack, AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, Refresh, CalendarToday, Timer, PriorityHigh, Autorenew, Delete } from '@mui/icons-material';
 import { CircularProgress, Box, Typography, Stack, Divider, Chip, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useJob } from '@/hooks/useJobs';
-import { JobStatus, JobPriority } from '@job-queue-monitor/shared';
+import { JobStatus, JobPriority } from '@shared';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -152,10 +152,10 @@ export const JobDetails = () => {
                                 <Button variant={ButtonVariant.SECONDARY} onClick={handleRetry} disabled={isUpdating} startIcon={<Refresh />}>
                                     Retry Job
                                 </Button>
-                                <Button 
-                                    variant={ButtonVariant.DESTRUCTIVE} 
-                                    onClick={() => setDeleteDialogOpen(true)} 
-                                    disabled={isUpdating} 
+                                <Button
+                                    variant={ButtonVariant.DESTRUCTIVE}
+                                    onClick={() => setDeleteDialogOpen(true)}
+                                    disabled={isUpdating}
                                     startIcon={<Delete />}
                                 >
                                     Delete Job

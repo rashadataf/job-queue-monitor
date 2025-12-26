@@ -1,54 +1,69 @@
 # Multi-stage Dockerfile for NestJS API
-
-# Base image: install dependencies and copy source
+# -----------------------------------------------------
+# Base stage: install dependencies only
+# -----------------------------------------------------
 FROM node:22-alpine AS base
 WORKDIR /usr/src/app
 
 ARG APP_PORT=3000
 ENV APP_PORT=$APP_PORT
 
-# Copy only manifests first (better layer caching)
+# Copy dependency manifests only (max layer cache)
 COPY api/package.json api/yarn.lock ./api/
 COPY shared/package.json ./shared/
-COPY shared/tsconfig*.json ./shared/
-COPY shared/src ./shared/src
 
-# Install shared deps (no lockfile in shared/)
+# Install shared dependencies
 WORKDIR /usr/src/app/shared
-RUN yarn install
+RUN yarn install --frozen-lockfile || yarn install
 
-# Install api deps (has yarn.lock)
+# Install api dependencies
 WORKDIR /usr/src/app/api
 RUN yarn install --frozen-lockfile
 
-# Copy full sources
+# -----------------------------------------------------
+# Development stage (bind mounts provide source code)
+# -----------------------------------------------------
+FROM base AS development
+
+ENV NODE_ENV=development
+EXPOSE $APP_PORT
+
+# IMPORTANT:
+# - No COPY of api/ or shared/
+# - Source code comes from bind mounts
+# - shared is built via external watch process
+
+WORKDIR /usr/src/app/api
+CMD ["yarn", "start:dev"]
+
+# -----------------------------------------------------
+# Build stage (production compilation)
+# -----------------------------------------------------
+FROM base AS build
+
+ENV NODE_ENV=production
+
+# Copy full sources for build only
 WORKDIR /usr/src/app
 COPY api ./api
 COPY shared ./shared
 
-# Development stage: build+watch shared, run Nest watch
-FROM base AS development
-ENV NODE_ENV=development
-EXPOSE $APP_PORT
-WORKDIR /usr/src/app/api
-CMD ["sh", "-c", "cd /usr/src/app/shared && yarn build && yarn dev & cd /usr/src/app/api && yarn start:dev"]
-
-# Build stage
-FROM base AS build
-ENV NODE_ENV=production
-WORKDIR /usr/src/app
+# Build shared first (api depends on it)
 RUN cd /usr/src/app/shared && yarn build
 RUN cd /usr/src/app/api && yarn build
 
-# Production stage
+# -----------------------------------------------------
+# Production runtime stage
+# -----------------------------------------------------
 FROM node:22-alpine AS production
+
 WORKDIR /usr/src/app
 
 ARG APP_PORT=3000
 ENV NODE_ENV=production
 ENV APP_PORT=$APP_PORT
 
-# Copy manifests + shared (needed because api depends on ../shared)
+# Copy only what is needed at runtime
 COPY api/package.json api/yarn.lock ./api/
 COPY shared ./shared
 

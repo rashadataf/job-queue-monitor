@@ -10,7 +10,7 @@ import {
   type JobQueryParams,
   SortField,
   SortOrder,
-} from "@job-queue-monitor/shared";
+} from "@shared";
 
 /**
  * Hook for managing the jobs list with CRUD operations

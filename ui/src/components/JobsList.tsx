@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { JobFilters } from '@/components/JobFilters';
-import { JobStatus, JobPriority } from '@job-queue-monitor/shared';
+import { JobStatus, JobPriority } from '@shared';
 import { ButtonVariant } from '@/types/button';
 
 const statusConfig = {

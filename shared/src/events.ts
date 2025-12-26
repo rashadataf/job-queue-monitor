@@ -1,4 +1,4 @@
-import { JobStatus, Job } from "./job";
+import { Job } from "./job";
 
 export enum JobSocketEvent {
   JOB_STATUS_UPDATED = "job.status.updated",

@@ -14,7 +14,7 @@ import {
     JobPriority,
     type JobData,
     JobResult,
-} from '@job-queue-monitor/shared';
+} from '@shared';
 
 @Entity('jobs')
 export class Job {

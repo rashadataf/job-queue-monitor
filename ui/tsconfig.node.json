@@ -23,11 +23,19 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     /* Base Url */
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@shared": [
+        "../shared"
+      ],
+      "@shared/*": [
+        "../shared/*"
       ]
     }
   },

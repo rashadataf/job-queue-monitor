@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@job-queue-monitor/shared": "../shared",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -31,6 +30,8 @@
     "@nestjs/websockets": "^11.1.10",
     "axios": "^1.13.2",
     "bullmq": "^5.66.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
