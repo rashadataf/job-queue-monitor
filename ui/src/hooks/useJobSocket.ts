@@ -67,22 +67,21 @@ export const useJobSocket = () => {
             if ("data" in currentData && Array.isArray(currentData.data)) {
               const result = currentData as PaginatedResult<Job>;
               const jobIndex = result.data.findIndex(
-                (j) => j.nanoId === payload.nanoId
+                (j) => j.nanoId === payload.job.nanoId
               );
               if (jobIndex === -1) return currentData;
               const updatedJobs = [...result.data];
-              updatedJobs[jobIndex] = {
-                ...updatedJobs[jobIndex],
-                status: payload.status,
-              };
+              // Replace entire job object with updated data from payload
+              updatedJobs[jobIndex] = payload.job;
 
               return { ...result, data: updatedJobs };
             }
             // Case 2: Detail view (Job)
             else if ("nanoId" in currentData) {
               const job = currentData as Job;
-              if (job.nanoId === payload.nanoId) {
-                return { ...job, status: payload.status };
+              if (job.nanoId === payload.job.nanoId) {
+                // Replace entire job with updated data
+                return payload.job;
               }
             }
 

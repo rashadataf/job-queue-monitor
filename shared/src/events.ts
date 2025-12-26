@@ -6,8 +6,7 @@ export enum JobSocketEvent {
 }
 
 export interface JobStatusUpdatedPayload {
-  nanoId: string;
-  status: JobStatus;
+  job: Job;
   timestamp: string;
 }
 

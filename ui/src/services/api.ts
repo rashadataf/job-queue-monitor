@@ -51,4 +51,8 @@ export const jobsApi = {
     const response = await api.post<Job>(`${ApiRoutes.JOBS}/${nanoId}/retry`);
     return response.data;
   },
+
+  async deleteJob(nanoId: string): Promise<void> {
+    await api.delete(`${ApiRoutes.JOBS}/${nanoId}`);
+  },
 };
