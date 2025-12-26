@@ -5,6 +5,7 @@ import {
   ApiRoutes,
   type PaginatedResult,
   type JobQueryParams,
+  type JobMetrics,
 } from "@shared";
 import axios from "axios";
 
@@ -54,5 +55,10 @@ export const jobsApi = {
 
   async deleteJob(nanoId: string): Promise<void> {
     await api.delete(`${ApiRoutes.JOBS}/${nanoId}`);
+  },
+
+  async fetchMetrics(): Promise<JobMetrics> {
+    const response = await api.get<JobMetrics>(ApiRoutes.JOBS_METRICS);
+    return response.data;
   },
 };

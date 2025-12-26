@@ -16,6 +16,7 @@ import {
     SortField,
     SortOrder,
     JobPriority,
+    JobMetrics,
 } from '@shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
@@ -254,5 +255,120 @@ export class JobsService {
         }
 
         await this.jobRepository.remove(job);
+    }
+
+    async getMetrics(): Promise<JobMetrics> {
+        // Get real-time queue metrics from BullMQ (fast, Redis-based)
+        const queueCounts = await this.jobQueue.getJobCounts(
+            'waiting',
+            'active',
+            'completed',
+            'failed',
+            'delayed',
+            'paused',
+            'prioritized',
+        );
+
+        // Log for debugging
+        this.logger.debug(
+            `BullMQ Queue Counts: ${JSON.stringify(queueCounts)}`,
+        );
+
+        const queueMetrics = {
+            waiting:
+                (queueCounts.waiting || 0) + (queueCounts.prioritized || 0),
+            active: queueCounts.active || 0,
+            completed: queueCounts.completed || 0,
+            failed: queueCounts.failed || 0,
+            delayed: queueCounts.delayed || 0,
+            paused: queueCounts.paused || 0,
+        };
+
+        // Get all jobs from database for historical analytics
+        const queryBuilder = this.jobRepository.createQueryBuilder('job');
+        const allJobs = await queryBuilder.getMany();
+
+        // Calculate totals by status (from database for historical data)
+        const byStatus = {
+            pending: allJobs.filter((j) => j.status === JobStatus.PENDING)
+                .length,
+            running: allJobs.filter((j) => j.status === JobStatus.RUNNING)
+                .length,
+            completed: allJobs.filter((j) => j.status === JobStatus.COMPLETED)
+                .length,
+            failed: allJobs.filter((j) => j.status === JobStatus.FAILED).length,
+        };
+
+        // Calculate totals by priority
+        const byPriority = {
+            critical: allJobs.filter((j) => j.priority === JobPriority.CRITICAL)
+                .length,
+            high: allJobs.filter((j) => j.priority === JobPriority.HIGH).length,
+            normal: allJobs.filter((j) => j.priority === JobPriority.NORMAL)
+                .length,
+            low: allJobs.filter((j) => j.priority === JobPriority.LOW).length,
+        };
+
+        // Calculate totals by type
+        const byType: { [key: string]: number } = {};
+        allJobs.forEach((job) => {
+            byType[job.type] = (byType[job.type] || 0) + 1;
+        });
+
+        // Calculate success rate
+        const completedJobs = allJobs.filter(
+            (j) =>
+                j.status === JobStatus.COMPLETED ||
+                j.status === JobStatus.FAILED,
+        );
+        const successRate =
+            completedJobs.length > 0
+                ? (byStatus.completed / completedJobs.length) * 100
+                : 0;
+
+        // Calculate average processing time (for completed jobs with start and complete times)
+        const jobsWithTimes = allJobs.filter(
+            (j) => j.startedAt && j.completedAt,
+        );
+        const averageProcessingTime =
+            jobsWithTimes.length > 0
+                ? jobsWithTimes.reduce((sum, job) => {
+                      const duration =
+                          job.completedAt!.getTime() - job.startedAt!.getTime();
+                      return sum + duration;
+                  }, 0) / jobsWithTimes.length
+                : 0;
+
+        // Calculate recent trends
+        const now = new Date();
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+        const twentyFourHoursAgo = new Date(
+            now.getTime() - 24 * 60 * 60 * 1000,
+        );
+
+        const lastHour = allJobs.filter(
+            (j) => j.createdAt >= oneHourAgo,
+        ).length;
+        const last24Hours = allJobs.filter(
+            (j) => j.createdAt >= twentyFourHoursAgo,
+        ).length;
+
+        // Calculate jobs per hour (based on last 24 hours)
+        const jobsPerHour = last24Hours / 24;
+
+        return {
+            total: allJobs.length,
+            byStatus,
+            byPriority,
+            byType,
+            queueMetrics,
+            successRate: Math.round(successRate * 100) / 100,
+            averageProcessingTime: Math.round(averageProcessingTime),
+            jobsPerHour: Math.round(jobsPerHour * 100) / 100,
+            recentTrend: {
+                lastHour,
+                last24Hours,
+            },
+        };
     }
 }

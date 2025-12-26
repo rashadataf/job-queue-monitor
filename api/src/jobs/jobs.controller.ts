@@ -23,6 +23,7 @@ import {
     JobStatus,
     SortField,
     SortOrder,
+    JobMetrics,
 } from '@shared';
 
 @Controller(ApiRoutes.JOBS)
@@ -83,5 +84,10 @@ export class JobsController {
     ): Promise<{ message: string }> {
         await this.jobsService.deleteJob(nanoId);
         return { message: `Job ${nanoId} deleted successfully` };
+    }
+
+    @Get('metrics/dashboard')
+    async getMetrics(): Promise<JobMetrics> {
+        return this.jobsService.getMetrics();
     }
 }

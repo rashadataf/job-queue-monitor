@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { AppBar, Toolbar, Typography, Container, Box, Button } from "@mui/material";
-import { Dashboard as DashboardIcon, Work as WorkIcon } from "@mui/icons-material";
+import { Dashboard as DashboardIcon, Work as WorkIcon, Analytics as AnalyticsIcon } from "@mui/icons-material";
 
 export const Layout = () => {
   const location = useLocation();
@@ -38,6 +38,18 @@ export const Layout = () => {
                 }}
               >
                 Dashboard
+              </Button>
+              <Button
+                component={Link}
+                to="/metrics"
+                startIcon={<AnalyticsIcon />}
+                sx={{
+                  my: 2,
+                  color: location.pathname === "/metrics" ? 'primary.main' : 'text.secondary',
+                  display: 'flex',
+                }}
+              >
+                Metrics
               </Button>
             </Box>
           </Toolbar>
