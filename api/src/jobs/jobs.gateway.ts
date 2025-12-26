@@ -6,11 +6,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import {
-    JobSocketEvent,
-    JobStatusUpdatedPayload,
-    Job,
-} from '@job-queue-monitor/shared';
+import { JobSocketEvent, JobStatusUpdatedPayload, Job } from '@shared';
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const origin = corsOrigin.includes(',') ? corsOrigin.split(',') : corsOrigin;

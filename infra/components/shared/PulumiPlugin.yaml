@@ -1,0 +1,62 @@
+name: shared
+description: Reusable Shared component for job-queue-monitor typescript files
+runtime: yaml
+
+components:
+  {
+    Shared:
+      {
+        inputs:
+          {
+            projectName: { type: "string" },
+            stackName: { type: "string" },
+            jobQueueSharedNodeModulesVolumeName: { type: "string" },
+          },
+        variables:
+          {
+            SHARED_CONTAINER_NAME: "${projectName}-shared-${stackName}",
+            SHARED_IMAGE_NAME: "${projectName}-shared-image",
+          },
+        resources:
+          {
+            sharedImage:
+              {
+                type: "docker:RemoteImage",
+                properties:
+                  {
+                    name: "${SHARED_IMAGE_NAME}",
+                    build:
+                      {
+                        context: "${pulumi.cwd}/../../shared",
+                        dockerfile: "Dockerfile",
+                        platform: "linux/amd64",
+                      },
+                  },
+              },
+            sharedContainer:
+              {
+                type: "docker:Container",
+                properties:
+                  {
+                    name: "${SHARED_CONTAINER_NAME}",
+                    image: "${sharedImage.imageId}",
+                    restart: "always",
+                    mounts:
+                      [
+                        {
+                          type: "bind",
+                          source: "${pulumi.cwd}/../../shared",
+                          target: "/usr/src/app/shared",
+                        },
+                        {
+                          type: "volume",
+                          source: "${jobQueueSharedNodeModulesVolumeName}",
+                          target: "/usr/src/app/shared/node_modules",
+                        },
+                      ],
+                  },
+              },
+          },
+        outputs: { sharedContainerName: "${sharedContainer.name}" },
+      },
+  }

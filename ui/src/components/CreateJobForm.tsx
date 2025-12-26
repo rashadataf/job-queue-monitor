@@ -12,7 +12,7 @@ import {
     type ApiCallJobData,
     type MathJobData,
     type MockJobData,
-} from '@job-queue-monitor/shared';
+} from '@shared';
 
 export const CreateJobForm = () => {
     const [name, setName] = useState('');

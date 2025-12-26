@@ -5,7 +5,7 @@ import {
   ApiRoutes,
   type PaginatedResult,
   type JobQueryParams,
-} from "@job-queue-monitor/shared";
+} from "@shared";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";

@@ -9,7 +9,7 @@ import {
     ApiCallJobData,
     MathJobData,
     MockJobData,
-} from '@job-queue-monitor/shared';
+} from '@shared';
 import { Logger } from '@nestjs/common';
 import { JOB_QUEUE_NAME } from './jobs.constants';
 import { JobsGateway } from './jobs.gateway';

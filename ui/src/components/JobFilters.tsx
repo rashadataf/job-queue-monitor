@@ -15,7 +15,7 @@ import {
   JobStatus,
   SortField,
   SortOrder,
-} from "@job-queue-monitor/shared";
+} from "@shared";
 
 interface JobFiltersProps {
   status: JobStatus | undefined;

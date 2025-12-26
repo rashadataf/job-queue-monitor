@@ -16,7 +16,7 @@ import {
     SortField,
     SortOrder,
     JobPriority,
-} from '@job-queue-monitor/shared';
+} from '@shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
 import { JobsGateway } from './jobs.gateway';

@@ -200,8 +200,23 @@ resources:
             redisPort: "${REDIS_PORT}",
           },
       },
+    shared:
+      {
+        type: "shared:Shared",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            jobQueueSharedNodeModulesVolumeName: "${jobQueueSharedNodeModulesVolume.name}",
+          },
+      },
   }
-packages: { db: "../components/db", redis: "../components/redis" }
+packages:
+  {
+    db: "../components/db",
+    redis: "../components/redis",
+    shared: "../components/shared",
+  }
 outputs:
   {
     apiUrl: "http://localhost:${API_HOST_PORT}",

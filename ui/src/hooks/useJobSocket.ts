@@ -7,7 +7,7 @@ import {
   type Job,
   ApiRoutes,
   type PaginatedResult,
-} from "@job-queue-monitor/shared";
+} from "@shared";
 import { useSWRConfig } from "swr";
 
 // In a real app, this should come from environment variables
@@ -36,13 +36,15 @@ export const useJobSocket = () => {
 
           // Add new job to the beginning of the list
           const newData = [payload.job, ...currentData.data];
-          
+
           return {
             data: newData,
             meta: {
               ...currentData.meta,
               total: currentData.meta.total + 1,
-              totalPages: Math.ceil((currentData.meta.total + 1) / currentData.meta.limit),
+              totalPages: Math.ceil(
+                (currentData.meta.total + 1) / currentData.meta.limit
+              ),
             },
           };
         },

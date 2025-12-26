@@ -1,46 +1,63 @@
-# Multi-stage Dockerfile for React/Vite UI (with ../shared support)
-
+# -----------------------------------------------------
+# Base stage: install dependencies only
+# -----------------------------------------------------
 FROM node:22-alpine AS base
+
 WORKDIR /usr/src/app
 
 ARG APP_PORT=5173
 ENV APP_PORT=$APP_PORT
 
-# Copy only manifests first (better layer caching)
+# Copy dependency manifests only (layer cache friendly)
 COPY ui/package.json ui/yarn.lock ./ui/
 COPY shared/package.json ./shared/
-COPY shared/tsconfig*.json ./shared/
-COPY shared/src ./shared/src
 
-# Install shared deps (no lockfile in shared/)
+# Install shared dependencies
 WORKDIR /usr/src/app/shared
-RUN yarn install
+RUN yarn install --frozen-lockfile || yarn install
 
-# Install ui deps (has yarn.lock)
+# Install UI dependencies
 WORKDIR /usr/src/app/ui
 RUN yarn install --frozen-lockfile
 
-# Copy full sources
+# -----------------------------------------------------
+# Development stage (bind mounts provide source code)
+# -----------------------------------------------------
+FROM base AS development
+
+ENV NODE_ENV=development
+EXPOSE $APP_PORT
+
+# IMPORTANT:
+# - No COPY ui/ or shared/
+# - shared is built by the shared-dev container
+# - Vite consumes shared/dist via bind mount
+
+WORKDIR /usr/src/app/ui
+CMD ["yarn", "dev", "--host", "0.0.0.0", "--port", "5173"]
+
+# -----------------------------------------------------
+# Build stage (production compilation)
+# -----------------------------------------------------
+FROM base AS build
+
+ENV NODE_ENV=production
+
+# Copy full sources for build only
 WORKDIR /usr/src/app
 COPY ui ./ui
 COPY shared ./shared
 
-# Development stage: build+watch shared, run Vite
-FROM base AS development
-ENV NODE_ENV=development
-EXPOSE $APP_PORT
-WORKDIR /usr/src/app/ui
-CMD ["sh", "-c", "cd /usr/src/app/shared && yarn build && yarn dev & cd /usr/src/app/ui && yarn dev --host 0.0.0.0 --port $APP_PORT"]
-
-# Build stage
-FROM base AS build
-ENV NODE_ENV=production
-WORKDIR /usr/src/app
+# Build shared first, then UI
 RUN cd /usr/src/app/shared && yarn build
 RUN cd /usr/src/app/ui && yarn build
 
-# Production stage: serve static files with Nginx
+# -----------------------------------------------------
+# Production runtime stage (Nginx)
+# -----------------------------------------------------
 FROM nginx:1.27-alpine AS production
+
 COPY --from=build /usr/src/app/ui/dist /usr/share/nginx/html
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
