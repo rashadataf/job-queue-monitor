@@ -61,6 +61,9 @@ export class Job {
     @Column({ type: 'int', default: 0, nullable: false })
     retryCount: number;
 
+    @Column({ type: 'boolean', default: false, nullable: false })
+    isPaused: boolean;
+
     @Column({ type: 'jsonb', nullable: true })
     data: JobData;
 

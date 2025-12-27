@@ -57,6 +57,16 @@ export const jobsApi = {
     await api.delete(`${ApiRoutes.JOBS}/${nanoId}`);
   },
 
+  async pauseJob(nanoId: string): Promise<Job> {
+    const response = await api.post<Job>(`${ApiRoutes.JOBS}/${nanoId}/pause`);
+    return response.data;
+  },
+
+  async resumeJob(nanoId: string): Promise<Job> {
+    const response = await api.post<Job>(`${ApiRoutes.JOBS}/${nanoId}/resume`);
+    return response.data;
+  },
+
   async fetchMetrics(): Promise<JobMetrics> {
     const response = await api.get<JobMetrics>(ApiRoutes.JOBS_METRICS);
     return response.data;

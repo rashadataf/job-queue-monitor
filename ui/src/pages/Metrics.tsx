@@ -158,7 +158,7 @@ export const Metrics = () => {
                 </Grid>
 
                 {/* Waiting Jobs */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <MetricCard
                         title="Waiting"
                         value={metrics.queueMetrics.waiting}
@@ -169,7 +169,7 @@ export const Metrics = () => {
                 </Grid>
 
                 {/* Active Jobs */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <MetricCard
                         title="Active"
                         value={metrics.queueMetrics.active}
@@ -180,24 +180,13 @@ export const Metrics = () => {
                 </Grid>
 
                 {/* Delayed Jobs */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <MetricCard
                         title="Delayed"
                         value={metrics.queueMetrics.delayed}
                         icon={<AccessTime fontSize="large" />}
                         color="#9c27b0"
                         subtitle="Scheduled"
-                    />
-                </Grid>
-
-                {/* Paused Jobs */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <MetricCard
-                        title="Paused"
-                        value={metrics.queueMetrics.paused}
-                        icon={<QueueIcon fontSize="large" />}
-                        color="#757575"
-                        subtitle="Paused"
                     />
                 </Grid>
 
@@ -214,6 +203,7 @@ export const Metrics = () => {
                                     { label: "Running", value: metrics.byStatus.running, color: "#2196f3" },
                                     { label: "Completed", value: metrics.byStatus.completed, color: "#4caf50" },
                                     { label: "Failed", value: metrics.byStatus.failed, color: "#f44336" },
+                                    { label: "Paused", value: metrics.byStatus.paused, color: "#9e9e9e" },
                                 ].map((item) => (
                                     <Box
                                         key={item.label}

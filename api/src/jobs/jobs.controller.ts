@@ -86,6 +86,16 @@ export class JobsController {
         return { message: `Job ${nanoId} deleted successfully` };
     }
 
+    @Post(':nanoId/pause')
+    async pause(@Param('nanoId') nanoId: string): Promise<Job> {
+        return this.jobsService.pauseJob(nanoId);
+    }
+
+    @Post(':nanoId/resume')
+    async resume(@Param('nanoId') nanoId: string): Promise<Job> {
+        return this.jobsService.resumeJob(nanoId);
+    }
+
     @Get('metrics/dashboard')
     async getMetrics(): Promise<JobMetrics> {
         return this.jobsService.getMetrics();

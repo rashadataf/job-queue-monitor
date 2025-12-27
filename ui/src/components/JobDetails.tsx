@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowBack, AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, Refresh, CalendarToday, Timer, PriorityHigh, Autorenew, Delete } from '@mui/icons-material';
+import { ArrowBack, AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, Refresh, CalendarToday, Timer, PriorityHigh, Autorenew, Delete, Pause, PlayCircle } from '@mui/icons-material';
 import { CircularProgress, Box, Typography, Stack, Divider, Chip, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useJob } from '@/hooks/useJobs';
 import { JobStatus, JobPriority } from '@shared';
@@ -14,6 +14,7 @@ const statusConfig = {
     [JobStatus.RUNNING]: { icon: <PlayArrow fontSize="small" />, label: 'Running' },
     [JobStatus.COMPLETED]: { icon: <CheckCircle fontSize="small" />, label: 'Completed' },
     [JobStatus.FAILED]: { icon: <ErrorIcon fontSize="small" />, label: 'Failed' },
+    [JobStatus.PAUSED]: { icon: <Pause fontSize="small" />, label: 'Paused' },
 };
 
 const priorityConfig = {
@@ -26,7 +27,7 @@ const priorityConfig = {
 export const JobDetails = () => {
     const { nanoId } = useParams();
     const navigate = useNavigate();
-    const { job, isLoading, isError, refresh, updateStatus, retryJob, deleteJob } = useJob(nanoId ?? null);
+    const { job, isLoading, isError, refresh, updateStatus, retryJob, deleteJob, pauseJob, resumeJob } = useJob(nanoId ?? null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -58,6 +59,28 @@ export const JobDetails = () => {
         } finally {
             setIsUpdating(false);
             setDeleteDialogOpen(false);
+        }
+    };
+
+    const handlePause = async () => {
+        setIsUpdating(true);
+        try {
+            await pauseJob();
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Failed to pause job');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleResume = async () => {
+        setIsUpdating(true);
+        try {
+            await resumeJob();
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Failed to resume job');
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -133,8 +156,18 @@ export const JobDetails = () => {
                             Refresh Status
                         </Button>
                         {job.status === JobStatus.PENDING && (
-                            <Button onClick={() => handleStatusChange(JobStatus.RUNNING)} disabled={isUpdating} startIcon={<PlayArrow />}>
-                                Start Job
+                            <>
+                                <Button onClick={() => handleStatusChange(JobStatus.RUNNING)} disabled={isUpdating} startIcon={<PlayArrow />}>
+                                    Start Job
+                                </Button>
+                                <Button variant={ButtonVariant.SECONDARY} onClick={handlePause} disabled={isUpdating} startIcon={<Pause />}>
+                                    Pause Job
+                                </Button>
+                            </>
+                        )}
+                        {job.status === JobStatus.PAUSED && (
+                            <Button variant={ButtonVariant.DEFAULT} onClick={handleResume} disabled={isUpdating} startIcon={<PlayCircle />}>
+                                Resume Job
                             </Button>
                         )}
                         {job.status === JobStatus.RUNNING && (

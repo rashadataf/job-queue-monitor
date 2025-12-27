@@ -15,6 +15,7 @@ export enum JobStatus {
   RUNNING = "running",
   COMPLETED = "completed",
   FAILED = "failed",
+  PAUSED = "paused",
 }
 
 export enum JobType {
@@ -102,6 +103,7 @@ export interface Job {
   autoRetry: boolean;
   maxRetries: number;
   retryCount: number;
+  isPaused: boolean;
   data: JobData;
   result: JobResult | null;
   startedAt: Date | null;
@@ -149,6 +151,7 @@ export interface JobsByStatus {
   running: number;
   completed: number;
   failed: number;
+  paused: number;
 }
 
 export interface JobsByPriority {
