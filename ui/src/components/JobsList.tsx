@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
-import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew, Pause } from '@mui/icons-material';
-import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip } from '@mui/material';
+import { useState } from 'react';
+import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew, Pause, Delete, PlayCircle, RestartAlt } from '@mui/icons-material';
+import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip, Checkbox, Toolbar, Alert } from '@mui/material';
 import { useJobs } from '@/hooks/useJobs';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { JobFilters } from '@/components/JobFilters';
-import { JobStatus, JobPriority } from '@shared';
+import { JobStatus, JobPriority, BulkAction } from '@shared';
 import { ButtonVariant } from '@/types/button';
+import { jobsApi } from '@/services/api';
 
 const statusConfig = {
     [JobStatus.PENDING]: { icon: <AccessTime fontSize="small" />, label: 'Pending' },
@@ -42,6 +44,56 @@ export const JobsList = () => {
         search,
         setSearch,
     } = useJobs();
+
+    const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+    const [bulkActionLoading, setBulkActionLoading] = useState(false);
+    const [bulkActionResult, setBulkActionResult] = useState<{ success: number; failed: number } | null>(null);
+
+    const handleSelectAll = () => {
+        if (selectedJobs.length === jobs.length) {
+            setSelectedJobs([]);
+        } else {
+            setSelectedJobs(jobs.map(job => job.nanoId));
+        }
+    };
+
+    const handleSelectJob = (nanoId: string) => {
+        setSelectedJobs(prev =>
+            prev.includes(nanoId)
+                ? prev.filter(id => id !== nanoId)
+                : [...prev, nanoId]
+        );
+    };
+
+    const handleBulkAction = async (action: BulkAction) => {
+        if (selectedJobs.length === 0) return;
+
+        setBulkActionLoading(true);
+        setBulkActionResult(null);
+
+        try {
+            const result = await jobsApi.bulkAction({
+                nanoIds: selectedJobs,
+                action,
+            });
+
+            setBulkActionResult({
+                success: result.success.length,
+                failed: result.failed.length,
+            });
+
+            setSelectedJobs([]);
+            refresh();
+
+            // Clear result after 5 seconds
+            setTimeout(() => setBulkActionResult(null), 5000);
+        } catch (error) {
+            console.error('Bulk action failed:', error);
+            alert(error instanceof Error ? error.message : 'Bulk action failed');
+        } finally {
+            setBulkActionLoading(false);
+        }
+    };
 
     const renderContent = () => {
         if (isLoading) {
@@ -91,6 +143,7 @@ export const JobsList = () => {
                 <List disablePadding>
                     {jobs.map((job, index) => {
                         const config = statusConfig[job.status];
+                        const isSelected = selectedJobs.includes(job.nanoId);
                         return (
                             <ListItem
                                 key={job.nanoId}
@@ -102,6 +155,11 @@ export const JobsList = () => {
                                     </IconButton>
                                 }
                             >
+                                <Checkbox
+                                    checked={isSelected}
+                                    onChange={() => handleSelectJob(job.nanoId)}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
                                 <ListItemButton component={Link} to={`/jobs/${job.nanoId}`}>
                                     <ListItemIcon>
                                         {config.icon}
@@ -175,6 +233,67 @@ export const JobsList = () => {
                 onSortOrderChange={setSortOrder}
                 onSearchChange={setSearch}
             />
+
+            {selectedJobs.length > 0 && (
+                <Card sx={{ mb: 2 }}>
+                    <Toolbar sx={{ bgcolor: 'action.hover' }}>
+                        <Checkbox
+                            checked={selectedJobs.length === jobs.length && jobs.length > 0}
+                            indeterminate={selectedJobs.length > 0 && selectedJobs.length < jobs.length}
+                            onChange={handleSelectAll}
+                        />
+                        <Typography variant="subtitle1" sx={{ flex: 1 }}>
+                            {selectedJobs.length} selected
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button
+                                variant={ButtonVariant.OUTLINE}
+                                size="small"
+                                onClick={() => handleBulkAction(BulkAction.RETRY)}
+                                disabled={bulkActionLoading}
+                                startIcon={<RestartAlt />}
+                            >
+                                Retry
+                            </Button>
+                            <Button
+                                variant={ButtonVariant.OUTLINE}
+                                size="small"
+                                onClick={() => handleBulkAction(BulkAction.PAUSE)}
+                                disabled={bulkActionLoading}
+                                startIcon={<Pause />}
+                            >
+                                Pause
+                            </Button>
+                            <Button
+                                variant={ButtonVariant.OUTLINE}
+                                size="small"
+                                onClick={() => handleBulkAction(BulkAction.RESUME)}
+                                disabled={bulkActionLoading}
+                                startIcon={<PlayCircle />}
+                            >
+                                Resume
+                            </Button>
+                            <Button
+                                variant={ButtonVariant.DESTRUCTIVE}
+                                size="small"
+                                onClick={() => handleBulkAction(BulkAction.DELETE)}
+                                disabled={bulkActionLoading}
+                                startIcon={<Delete />}
+                            >
+                                Delete
+                            </Button>
+                        </Box>
+                    </Toolbar>
+                </Card>
+            )}
+
+            {bulkActionResult && (
+                <Alert severity={bulkActionResult.failed > 0 ? "warning" : "success"} sx={{ mb: 2 }}>
+                    Bulk action completed: {bulkActionResult.success} succeeded
+                    {bulkActionResult.failed > 0 && `, ${bulkActionResult.failed} failed`}
+                </Alert>
+            )}
+
             {renderContent()}
         </>
     );

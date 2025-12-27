@@ -24,6 +24,8 @@ import {
     SortField,
     SortOrder,
     JobMetrics,
+    BulkJobActionDto,
+    BulkActionResult,
 } from '@shared';
 
 @Controller(ApiRoutes.JOBS)
@@ -94,6 +96,13 @@ export class JobsController {
     @Post(':nanoId/resume')
     async resume(@Param('nanoId') nanoId: string): Promise<Job> {
         return this.jobsService.resumeJob(nanoId);
+    }
+
+    @Post('bulk')
+    async bulkAction(
+        @Body() bulkJobActionDto: BulkJobActionDto,
+    ): Promise<BulkActionResult> {
+        return this.jobsService.bulkAction(bulkJobActionDto);
     }
 
     @Get('metrics/dashboard')

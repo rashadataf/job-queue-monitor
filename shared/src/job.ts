@@ -8,6 +8,7 @@ import {
   IsInt,
   Min,
   Max,
+  IsArray,
 } from "class-validator";
 
 export enum JobStatus {
@@ -25,10 +26,10 @@ export enum JobType {
 }
 
 export enum JobPriority {
-  CRITICAL = 1,  // Highest priority (lowest number)
+  CRITICAL = 1, // Highest priority (lowest number)
   HIGH = 2,
   NORMAL = 3,
-  LOW = 4,       // Lowest priority (highest number)
+  LOW = 4, // Lowest priority (highest number)
 }
 
 export interface MockJobData {
@@ -144,6 +145,29 @@ export class CreateJobDto {
   @IsObject()
   @IsOptional()
   data?: JobData;
+}
+
+export enum BulkAction {
+  DELETE = "delete",
+  RETRY = "retry",
+  PAUSE = "pause",
+  RESUME = "resume",
+}
+
+export class BulkJobActionDto {
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty()
+  nanoIds: string[];
+
+  @IsEnum(BulkAction)
+  @IsNotEmpty()
+  action: BulkAction;
+}
+
+export interface BulkActionResult {
+  success: string[];
+  failed: Array<{ nanoId: string; error: string }>;
 }
 
 export interface JobsByStatus {

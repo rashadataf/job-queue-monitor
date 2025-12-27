@@ -19,6 +19,9 @@ import {
     JobMetrics,
     JobType,
     JobData,
+    BulkJobActionDto,
+    BulkAction,
+    BulkActionResult,
 } from '@shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
@@ -341,6 +344,54 @@ export class JobsService {
         );
 
         return savedJob;
+    }
+
+    async bulkAction(
+        bulkJobActionDto: BulkJobActionDto,
+    ): Promise<BulkActionResult> {
+        const { nanoIds, action } = bulkJobActionDto;
+        const result: BulkActionResult = {
+            success: [],
+            failed: [],
+        };
+
+        for (const nanoId of nanoIds) {
+            try {
+                switch (action) {
+                    case BulkAction.DELETE:
+                        await this.deleteJob(nanoId);
+                        break;
+                    case BulkAction.RETRY:
+                        await this.retryJob(nanoId);
+                        break;
+                    case BulkAction.PAUSE:
+                        await this.pauseJob(nanoId);
+                        break;
+                    case BulkAction.RESUME:
+                        await this.resumeJob(nanoId);
+                        break;
+                    default:
+                        throw new BadRequestException(
+                            `Unknown action: ${action}`,
+                        );
+                }
+                result.success.push(nanoId);
+            } catch (error) {
+                result.failed.push({
+                    nanoId,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                });
+            }
+        }
+
+        this.logger.log(
+            `Bulk ${action}: ${result.success.length} succeeded, ${result.failed.length} failed`,
+        );
+
+        return result;
     }
 
     // async getMetrics(): Promise<JobMetrics> {
