@@ -22,6 +22,9 @@ export const Badge = ({ variant = JobStatus.PENDING, ...props }: BadgeProps) => 
     case JobStatus.PENDING:
       color = 'warning';
       break;
+    case JobStatus.PAUSED:
+      color = 'default';
+      break;
     default:
       break;
   }

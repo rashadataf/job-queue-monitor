@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew } from '@mui/icons-material';
+import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew, Pause } from '@mui/icons-material';
 import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip } from '@mui/material';
 import { useJobs } from '@/hooks/useJobs';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -14,6 +14,7 @@ const statusConfig = {
     [JobStatus.RUNNING]: { icon: <PlayArrow fontSize="small" />, label: 'Running' },
     [JobStatus.COMPLETED]: { icon: <CheckCircle fontSize="small" />, label: 'Completed' },
     [JobStatus.FAILED]: { icon: <ErrorIcon fontSize="small" />, label: 'Failed' },
+    [JobStatus.PAUSED]: { icon: <Pause fontSize="small" />, label: 'Paused' },
 };
 
 const priorityConfig = {

@@ -143,6 +143,18 @@ export function useJob(nanoId: string | null) {
     await jobsApi.deleteJob(nanoId);
   }, [nanoId]);
 
+  const pauseJob = useCallback(async () => {
+    if (!nanoId) return;
+    await jobsApi.pauseJob(nanoId);
+    mutate();
+  }, [nanoId, mutate]);
+
+  const resumeJob = useCallback(async () => {
+    if (!nanoId) return;
+    await jobsApi.resumeJob(nanoId);
+    mutate();
+  }, [nanoId, mutate]);
+
   return {
     job: data,
     isLoading,
@@ -151,5 +163,7 @@ export function useJob(nanoId: string | null) {
     updateStatus,
     retryJob,
     deleteJob,
+    pauseJob,
+    resumeJob,
   };
 }

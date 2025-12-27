@@ -15,6 +15,7 @@ export enum JobStatus {
   RUNNING = "running",
   COMPLETED = "completed",
   FAILED = "failed",
+  PAUSED = "paused",
 }
 
 export enum JobType {
@@ -102,6 +103,7 @@ export interface Job {
   autoRetry: boolean;
   maxRetries: number;
   retryCount: number;
+  isPaused: boolean;
   data: JobData;
   result: JobResult | null;
   startedAt: Date | null;
@@ -142,4 +144,47 @@ export class CreateJobDto {
   @IsObject()
   @IsOptional()
   data?: JobData;
+}
+
+export interface JobsByStatus {
+  pending: number;
+  running: number;
+  completed: number;
+  failed: number;
+  paused: number;
+}
+
+export interface JobsByPriority {
+  critical: number;
+  high: number;
+  normal: number;
+  low: number;
+}
+
+export interface JobsByType {
+  [key: string]: number;
+}
+
+export interface QueueMetrics {
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+  paused: number;
+}
+
+export interface JobMetrics {
+  total: number;
+  byStatus: JobsByStatus;
+  byPriority: JobsByPriority;
+  byType: JobsByType;
+  queueMetrics: QueueMetrics;
+  successRate: number;
+  averageProcessingTime: number; // in milliseconds
+  jobsPerHour: number;
+  recentTrend: {
+    lastHour: number;
+    last24Hours: number;
+  };
 }
