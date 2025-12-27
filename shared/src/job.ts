@@ -109,6 +109,7 @@ export interface Job {
   result: JobResult | null;
   startedAt: Date | null;
   completedAt: Date | null;
+  scheduledAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -145,6 +146,9 @@ export class CreateJobDto {
   @IsObject()
   @IsOptional()
   data?: JobData;
+
+  @IsOptional()
+  scheduledAt?: Date;
 }
 
 export enum BulkAction {

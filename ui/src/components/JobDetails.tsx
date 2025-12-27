@@ -229,6 +229,15 @@ export const JobDetails = () => {
                             </Box>
                         )}
 
+                        {job.scheduledAt && (
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom>Scheduled For</Typography>
+                                <Typography variant="body1">
+                                    {new Date(job.scheduledAt).toLocaleString()}
+                                </Typography>
+                            </Box>
+                        )}
+
                         {job.data && (
                             <Box>
                                 <Typography variant="subtitle2" gutterBottom>Input Payload</Typography>
@@ -272,6 +281,20 @@ export const JobDetails = () => {
                                 </Typography>
                             </Box>
                         </Box>
+
+                        {job.scheduledAt && (
+                            <Box display="flex" gap={2}>
+                                <Box sx={{ bgcolor: 'warning.light', borderRadius: '50%', p: 1, display: 'flex' }}>
+                                    <AccessTime fontSize="small" sx={{ color: 'warning.main' }} />
+                                </Box>
+                                <Box>
+                                    <Typography variant="subtitle2">Scheduled</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {new Date(job.scheduledAt).toLocaleString()}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        )}
 
                         {job.startedAt && (
                             <Box display="flex" gap={2}>
