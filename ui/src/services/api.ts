@@ -8,6 +8,7 @@ import {
   type JobMetrics,
   type BulkJobActionDto,
   type BulkActionResult,
+  ExportFormat,
 } from "@shared";
 import axios from "axios";
 
@@ -80,5 +81,31 @@ export const jobsApi = {
       bulkActionDto
     );
     return response.data;
+  },
+
+  async exportJobs(
+    format: ExportFormat,
+    queryParams?: Omit<JobQueryParams, "page" | "limit">
+  ): Promise<void> {
+    const response = await api.get(ApiRoutes.JOBS_EXPORT, {
+      params: { format, ...queryParams },
+      responseType: "blob",
+    });
+
+    // Create download link
+    const blob = new Blob([response.data], {
+      type: format === ExportFormat.CSV ? "text/csv" : "application/json",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const timestamp = new Date().toISOString().replace(/:/g, "-").split(".")[0];
+    link.download = `jobs-export-${timestamp}.${format}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 };

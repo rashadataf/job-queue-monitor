@@ -12,7 +12,9 @@ import {
     DefaultValuePipe,
     ParseIntPipe,
     Delete,
+    Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { JobsService } from './jobs.service';
 import { Job } from './entities/job.entity';
 import {
@@ -26,6 +28,7 @@ import {
     JobMetrics,
     BulkJobActionDto,
     BulkActionResult,
+    ExportFormat,
 } from '@shared';
 
 @Controller(ApiRoutes.JOBS)
@@ -48,6 +51,51 @@ export class JobsController {
             sortOrder,
             search,
         });
+    }
+
+    @Get('metrics/dashboard')
+    async getMetrics(): Promise<JobMetrics> {
+        return this.jobsService.getMetrics();
+    }
+
+    @Get('export')
+    async export(
+        @Query('format') format?: ExportFormat,
+        @Query('status') status?: JobStatus,
+        @Query('sortBy') sortBy?: SortField,
+        @Query('sortOrder') sortOrder?: SortOrder,
+        @Query('search') search?: string,
+        @Res() res?: Response,
+    ): Promise<void> {
+        const exportFormat =
+            format === ExportFormat.CSV ? ExportFormat.CSV : ExportFormat.JSON;
+
+        const content = await this.jobsService.exportJobs(exportFormat, {
+            status,
+            sortBy,
+            sortOrder,
+            search,
+        });
+
+        const timestamp = new Date()
+            .toISOString()
+            .replace(/:/g, '-')
+            .split('.')[0];
+        const filename = `jobs-export-${timestamp}.${exportFormat}`;
+
+        if (res) {
+            res.setHeader(
+                'Content-Type',
+                exportFormat === ExportFormat.CSV
+                    ? 'text/csv'
+                    : 'application/json',
+            );
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename="${filename}"`,
+            );
+            res.send(content);
+        }
     }
 
     @Get(':nanoId')
@@ -103,10 +151,5 @@ export class JobsController {
         @Body() bulkJobActionDto: BulkJobActionDto,
     ): Promise<BulkActionResult> {
         return this.jobsService.bulkAction(bulkJobActionDto);
-    }
-
-    @Get('metrics/dashboard')
-    async getMetrics(): Promise<JobMetrics> {
-        return this.jobsService.getMetrics();
     }
 }

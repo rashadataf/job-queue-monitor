@@ -22,6 +22,7 @@ import {
     BulkJobActionDto,
     BulkAction,
     BulkActionResult,
+    ExportFormat,
 } from '@shared';
 import { Job } from './entities/job.entity';
 import { JOB_QUEUE_NAME } from './jobs.constants';
@@ -37,6 +38,7 @@ interface QueueJobData {
 @Injectable()
 export class JobsService {
     private readonly logger = new Logger(JobsService.name);
+    private readonly alias = Job.name.toLowerCase();
 
     // Map SortField enum to actual entity column names for type safety
     private readonly sortFieldMap: Record<SortField, keyof Job> = {
@@ -66,8 +68,7 @@ export class JobsService {
             totalPages: number;
         };
     }> {
-        const alias = Job.name.toLowerCase();
-        const queryBuilder = this.jobRepository.createQueryBuilder(alias);
+        const queryBuilder = this.jobRepository.createQueryBuilder(this.alias);
 
         // Apply status filter using object notation (more type-safe)
         if (queryParams?.status) {
@@ -78,9 +79,11 @@ export class JobsService {
         if (queryParams?.search) {
             queryBuilder.andWhere(
                 new Brackets((qb) => {
-                    qb.where(`${alias}.name ILIKE :search`, {
+                    qb.where(`${this.alias}.name ILIKE :search`, {
                         search: `%${queryParams.search}%`,
-                    }).orWhere(`CAST(${alias}.nanoId AS TEXT) ILIKE :search`);
+                    }).orWhere(
+                        `CAST(${this.alias}.nanoId AS TEXT) ILIKE :search`,
+                    );
                 }),
             );
         }
@@ -90,7 +93,7 @@ export class JobsService {
         const sortOrder = queryParams?.sortOrder || SortOrder.DESC;
         const sortColumn = this.sortFieldMap[sortBy];
         queryBuilder.orderBy(
-            `${alias}.${sortColumn}`,
+            `${this.alias}.${sortColumn}`,
             sortOrder.toUpperCase() as 'ASC' | 'DESC',
         );
 
@@ -532,5 +535,135 @@ export class JobsService {
                 last24Hours,
             },
         };
+    }
+
+    async exportJobs(
+        format: ExportFormat,
+        queryParams?: JobQueryParams,
+    ): Promise<string> {
+        // Fetch all jobs matching the query (no pagination for export)
+        const queryBuilder = this.jobRepository.createQueryBuilder(this.alias);
+
+        // Apply status filter
+        if (queryParams?.status) {
+            queryBuilder.andWhere({ status: queryParams.status });
+        }
+
+        // Apply search filter
+        if (queryParams?.search) {
+            queryBuilder.andWhere(
+                new Brackets((qb) => {
+                    qb.where(`${this.alias}.name ILIKE :search`, {
+                        search: `%${queryParams.search}%`,
+                    }).orWhere(
+                        `CAST(${this.alias}.nanoId AS TEXT) ILIKE :search`,
+                    );
+                }),
+            );
+        }
+
+        // Apply sorting
+        const sortBy = queryParams?.sortBy || SortField.CREATED_AT;
+        const sortOrder = queryParams?.sortOrder || SortOrder.DESC;
+        const sortColumn = this.sortFieldMap[sortBy];
+        queryBuilder.orderBy(
+            `${this.alias}.${sortColumn}`,
+            sortOrder.toUpperCase() as 'ASC' | 'DESC',
+        );
+
+        const jobs = await queryBuilder.getMany();
+
+        if (format === ExportFormat.CSV) {
+            return this.convertToCSV(jobs);
+        } else {
+            // Exclude id field from JSON export
+            const jobsWithoutId: Omit<Job, 'id'>[] = jobs.map((job) => ({
+                nanoId: job.nanoId,
+                name: job.name,
+                type: job.type,
+                status: job.status,
+                priority: job.priority,
+                autoRetry: job.autoRetry,
+                maxRetries: job.maxRetries,
+                retryCount: job.retryCount,
+                isPaused: job.isPaused,
+                data: job.data,
+                result: job.result,
+                createdAt: job.createdAt,
+                updatedAt: job.updatedAt,
+                startedAt: job.startedAt,
+                completedAt: job.completedAt,
+                scheduledAt: job.scheduledAt,
+            }));
+            return JSON.stringify(jobsWithoutId, null, 2);
+        }
+    }
+
+    private convertToCSV(jobs: Job[]): string {
+        if (jobs.length === 0) {
+            return '';
+        }
+
+        // Define CSV headers
+        const headers = [
+            'Nano ID',
+            'Name',
+            'Type',
+            'Status',
+            'Priority',
+            'Auto Retry',
+            'Max Retries',
+            'Retry Count',
+            'Is Paused',
+            'Created At',
+            'Updated At',
+            'Started At',
+            'Completed At',
+            'Scheduled At',
+            'Data',
+            'Result',
+        ];
+
+        // Convert jobs to CSV rows
+        const rows = jobs.map((job) => [
+            job.nanoId,
+            this.escapeCSV(job.name),
+            job.type,
+            job.status,
+            job.priority,
+            job.autoRetry,
+            job.maxRetries,
+            job.retryCount,
+            job.isPaused,
+            job.createdAt?.toISOString() || '',
+            job.updatedAt?.toISOString() || '',
+            job.startedAt?.toISOString() || '',
+            job.completedAt?.toISOString() || '',
+            job.scheduledAt?.toISOString() || '',
+            this.escapeCSV(JSON.stringify(job.data)),
+            this.escapeCSV(JSON.stringify(job.result)),
+        ]);
+
+        // Combine headers and rows
+        const csvContent = [
+            headers.join(','),
+            ...rows.map((row) => row.join(',')),
+        ].join('\n');
+
+        return csvContent;
+    }
+
+    private escapeCSV(value: string | null | undefined): string {
+        if (!value) return '';
+        // Escape quotes and wrap in quotes if contains comma, newline, or quote
+        const stringValue = String(value);
+        if (
+            stringValue.includes(',') ||
+            stringValue.includes('\n') ||
+            stringValue.includes('"')
+        ) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
     }
 }
