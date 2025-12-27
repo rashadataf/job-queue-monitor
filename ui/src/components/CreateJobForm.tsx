@@ -1,6 +1,9 @@
 import { type FormEvent, useState } from 'react';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Box, Alert, FormControl, InputLabel, Select, MenuItem, TextField, Checkbox, FormControlLabel } from '@mui/material';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useJobs } from '@/hooks/useJobs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -20,6 +23,7 @@ export const CreateJobForm = () => {
     const [priority, setPriority] = useState<JobPriority>(JobPriority.NORMAL);
     const [autoRetry, setAutoRetry] = useState(false);
     const [maxRetries, setMaxRetries] = useState(3);
+    const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
     const [data, setData] = useState<Partial<JobData>>({});
     const [rawBody, setRawBody] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +62,7 @@ export const CreateJobForm = () => {
                 priority,
                 autoRetry,
                 maxRetries: autoRetry ? maxRetries : undefined,
+                scheduledAt: scheduledAt || undefined,
             });
             setName('');
             setData({});
@@ -66,6 +71,7 @@ export const CreateJobForm = () => {
             setPriority(JobPriority.NORMAL);
             setAutoRetry(false);
             setMaxRetries(3);
+            setScheduledAt(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create job');
         } finally {
@@ -212,6 +218,22 @@ export const CreateJobForm = () => {
                                 <MenuItem value={JobPriority.CRITICAL}>Critical</MenuItem>
                             </Select>
                         </FormControl>
+
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <DateTimePicker
+                                label="Schedule for Later (Optional)"
+                                value={scheduledAt}
+                                onChange={(newValue) => setScheduledAt(newValue)}
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        size: 'small',
+                                        helperText: 'Leave empty to run immediately'
+                                    }
+                                }}
+                                minDateTime={new Date()}
+                            />
+                        </LocalizationProvider>
 
                         <Box>
                             <FormControlLabel

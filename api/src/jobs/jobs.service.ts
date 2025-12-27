@@ -128,15 +128,28 @@ export class JobsService {
             autoRetry: createJobDto.autoRetry || false,
             maxRetries: createJobDto.maxRetries || 3,
             retryCount: 0,
+            scheduledAt: createJobDto.scheduledAt || null,
         });
         const savedJob = await this.jobRepository.save(job);
 
         // Emit job created event
         this.jobsGateway.emitJobCreated(savedJob);
 
-        this.logger.log(
-            `Adding job ${savedJob.nanoId} to queue with priority ${savedJob.priority}`,
-        );
+        // Calculate delay if job is scheduled
+        let delay: number | undefined;
+        if (savedJob.scheduledAt) {
+            const scheduledTime = new Date(savedJob.scheduledAt).getTime();
+            const now = Date.now();
+            delay = Math.max(0, scheduledTime - now);
+
+            this.logger.log(
+                `Scheduling job ${savedJob.nanoId} to run at ${savedJob.scheduledAt.toISOString()} (delay: ${delay}ms)`,
+            );
+        } else {
+            this.logger.log(
+                `Adding job ${savedJob.nanoId} to queue with priority ${savedJob.priority}`,
+            );
+        }
 
         await this.jobQueue.add(
             'process-job',
@@ -147,6 +160,7 @@ export class JobsService {
             },
             {
                 priority: savedJob.priority,
+                delay,
             },
         );
 
@@ -372,7 +386,7 @@ export class JobsService {
                         break;
                     default:
                         throw new BadRequestException(
-                            `Unknown action: ${action}`,
+                            `Unknown action: ${String(action)}`,
                         );
                 }
                 result.success.push(nanoId);

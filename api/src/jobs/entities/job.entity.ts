@@ -76,6 +76,9 @@ export class Job {
     @Column({ type: 'timestamp', nullable: true })
     completedAt: Date | null;
 
+    @Column({ type: 'timestamp', nullable: true })
+    scheduledAt: Date | null;
+
     @CreateDateColumn()
     createdAt: Date;
 
