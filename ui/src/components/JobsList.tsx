@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew, Pause, Delete, PlayCircle, RestartAlt } from '@mui/icons-material';
-import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip, Checkbox, Toolbar, Alert } from '@mui/material';
+import { AccessTime, PlayArrow, CheckCircle, Error as ErrorIcon, ChevronRight, Refresh, PriorityHigh, Autorenew, Pause, Delete, PlayCircle, RestartAlt, Download } from '@mui/icons-material';
+import { CircularProgress, List, ListItem, ListItemText, ListItemIcon, ListItemButton, Box, Typography, IconButton, Chip, Checkbox, Toolbar, Alert, Menu, MenuItem } from '@mui/material';
 import { useJobs } from '@/hooks/useJobs';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { JobFilters } from '@/components/JobFilters';
-import { JobStatus, JobPriority, BulkAction } from '@shared';
+import { JobStatus, JobPriority, BulkAction, ExportFormat } from '@shared';
 import { ButtonVariant } from '@/types/button';
 import { jobsApi } from '@/services/api';
 
@@ -48,6 +48,8 @@ export const JobsList = () => {
     const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
     const [bulkActionLoading, setBulkActionLoading] = useState(false);
     const [bulkActionResult, setBulkActionResult] = useState<{ success: number; failed: number } | null>(null);
+    const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+    const [exportLoading, setExportLoading] = useState(false);
 
     const handleSelectAll = () => {
         if (selectedJobs.length === jobs.length) {
@@ -92,6 +94,33 @@ export const JobsList = () => {
             alert(error instanceof Error ? error.message : 'Bulk action failed');
         } finally {
             setBulkActionLoading(false);
+        }
+    };
+
+    const handleExportClick = (event: React.MouseEvent<HTMLElement>) => {
+        setExportMenuAnchor(event.currentTarget);
+    };
+
+    const handleExportClose = () => {
+        setExportMenuAnchor(null);
+    };
+
+    const handleExport = async (format: ExportFormat) => {
+        setExportLoading(true);
+        handleExportClose();
+
+        try {
+            await jobsApi.exportJobs(format, {
+                status,
+                sortBy,
+                sortOrder,
+                search,
+            });
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert(error instanceof Error ? error.message : 'Export failed');
+        } finally {
+            setExportLoading(false);
         }
     };
 
@@ -223,16 +252,38 @@ export const JobsList = () => {
 
     return (
         <>
-            <JobFilters
-                status={status}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                search={search}
-                onStatusChange={setStatus}
-                onSortByChange={setSortBy}
-                onSortOrderChange={setSortOrder}
-                onSearchChange={setSearch}
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <JobFilters
+                    status={status}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    search={search}
+                    onStatusChange={setStatus}
+                    onSortByChange={setSortBy}
+                    onSortOrderChange={setSortOrder}
+                    onSearchChange={setSearch}
+                />
+                <Button
+                    variant={ButtonVariant.OUTLINE}
+                    onClick={handleExportClick}
+                    disabled={exportLoading}
+                    startIcon={<Download />}
+                >
+                    Export
+                </Button>
+                <Menu
+                    anchorEl={exportMenuAnchor}
+                    open={Boolean(exportMenuAnchor)}
+                    onClose={handleExportClose}
+                >
+                    <MenuItem onClick={() => handleExport(ExportFormat.JSON)}>
+                        Export as JSON
+                    </MenuItem>
+                    <MenuItem onClick={() => handleExport(ExportFormat.CSV)}>
+                        Export as CSV
+                    </MenuItem>
+                </Menu>
+            </Box>
 
             {selectedJobs.length > 0 && (
                 <Card sx={{ mb: 2 }}>

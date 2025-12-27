@@ -32,6 +32,11 @@ export enum JobPriority {
   LOW = 4, // Lowest priority (highest number)
 }
 
+export enum ExportFormat {
+  CSV = "csv",
+  JSON = "json",
+}
+
 export interface MockJobData {
   duration?: number;
   shouldFail?: boolean;
