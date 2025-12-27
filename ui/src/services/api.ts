@@ -6,6 +6,8 @@ import {
   type PaginatedResult,
   type JobQueryParams,
   type JobMetrics,
+  type BulkJobActionDto,
+  type BulkActionResult,
 } from "@shared";
 import axios from "axios";
 
@@ -69,6 +71,14 @@ export const jobsApi = {
 
   async fetchMetrics(): Promise<JobMetrics> {
     const response = await api.get<JobMetrics>(ApiRoutes.JOBS_METRICS);
+    return response.data;
+  },
+
+  async bulkAction(bulkActionDto: BulkJobActionDto): Promise<BulkActionResult> {
+    const response = await api.post<BulkActionResult>(
+      ApiRoutes.JOBS_BULK.toString(),
+      bulkActionDto
+    );
     return response.data;
   },
 };

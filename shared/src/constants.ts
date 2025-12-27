@@ -3,4 +3,5 @@ export enum ApiRoutes {
   JOBS_METRICS = "/jobs/metrics/dashboard",
   JOBS_PAUSE = "/jobs/:nanoId/pause",
   JOBS_RESUME = "/jobs/:nanoId/resume",
+  JOBS_BULK = "/jobs/bulk",
 }
