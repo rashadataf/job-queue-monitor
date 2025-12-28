@@ -65,12 +65,17 @@ ENV APP_PORT=$APP_PORT
 
 # Copy only what is needed at runtime
 COPY api/package.json api/yarn.lock ./api/
-COPY shared ./shared
+COPY shared/package.json ./shared/
 
 WORKDIR /usr/src/app/api
 RUN yarn install --frozen-lockfile --production=true
 
 COPY --from=build /usr/src/app/api/dist ./dist
+
+WORKDIR /usr/src/app/shared
+RUN yarn install --production=true
+
+COPY --from=build /usr/src/app/shared/dist ./dist
 
 EXPOSE $APP_PORT
 CMD ["yarn", "start:prod"]
