@@ -286,6 +286,24 @@ resources:
               [{ internal: "${API_APP_PORT}", external: "${API_HOST_PORT}" }],
           },
       },
+
+    jobQueueApiDebugContainer:
+      {
+        type: "docker:Container",
+        properties:
+          {
+            name: "job-queue-monitor-api-debug-portfolio-${pulumi.stack}",
+            image: "${jobQueueApiImage.imageId}",
+            restart: "always",
+            networksAdvanced:
+              [
+                { name: "${APP_NETWORK_NAME}" },
+                { name: "${PORTFOLIO_NETWORK_NAME}" },
+              ],
+            command: ["tail", "-f", "/dev/null"],
+          },
+      },
+
     jobQueueUiContainer:
       {
         type: "docker:Container",
