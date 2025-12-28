@@ -72,43 +72,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Core React libraries
-          if (
-            id.includes("node_modules/react") ||
-            id.includes("node_modules/react-dom") ||
-            id.includes("node_modules/react-router-dom") ||
-            id.includes("node_modules/scheduler")
-          ) {
-            return "react-vendor";
-          }
-          // Material-UI components
-          if (id.includes("node_modules/@mui/material")) {
-            return "mui-material";
-          }
-          if (id.includes("node_modules/@mui/icons-material")) {
-            return "mui-icons";
-          }
-          if (
-            id.includes("node_modules/@mui/x-date-pickers") ||
-            id.includes("node_modules/@mui/system") ||
-            id.includes("node_modules/@mui/base")
-          ) {
-            return "mui-pickers";
-          }
-          // Data fetching, state, and socket.io together (avoid init issues)
-          if (
-            id.includes("node_modules/swr") ||
-            id.includes("node_modules/axios") ||
-            id.includes("node_modules/socket.io-client") ||
-            id.includes("node_modules/engine.io-client")
-          ) {
-            return "data-vendor";
-          }
-          // Date utilities
-          if (id.includes("node_modules/date-fns")) {
-            return "date-vendor";
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-material': ['@mui/material'],
+          'mui-icons': ['@mui/icons-material'],
+          'data-vendor': ['swr', 'axios', 'socket.io-client']
         },
         chunkFileNames: "assets/[name]-[hash].js",
         entryFileNames: "assets/[name]-[hash].js",
