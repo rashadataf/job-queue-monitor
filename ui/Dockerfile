@@ -57,6 +57,9 @@ RUN cd /usr/src/app/ui && yarn build
 # -----------------------------------------------------
 FROM nginx:1.27-alpine AS production
 
+# Copy custom nginx config with caching headers
+COPY ui/nginx.conf /etc/nginx/conf.d/default.conf
+
 COPY --from=build /usr/src/app/ui/dist /usr/share/nginx/html
 
 EXPOSE 80

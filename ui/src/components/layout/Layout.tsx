@@ -10,7 +10,7 @@ export const Layout = () => {
       <AppBar position="sticky" color="default" elevation={1}>
         <Container maxWidth="lg">
           <Toolbar disableGutters>
-            <WorkIcon sx={{ mr: 1 }} />
+            <WorkIcon sx={{ mr: 1 }} aria-hidden="true" />
             <Typography
               variant="h6"
               noWrap
@@ -26,28 +26,30 @@ export const Layout = () => {
               Job Queue Monitor
             </Typography>
 
-            <Box sx={{ flexGrow: 1, display: 'flex' }}>
+            <Box component="nav" sx={{ flexGrow: 1, display: 'flex' }} aria-label="Main navigation">
               <Button
                 component={Link}
                 to="/"
-                startIcon={<DashboardIcon />}
+                startIcon={<DashboardIcon aria-hidden="true" />}
                 sx={{
                   my: 2,
                   color: location.pathname === "/" ? 'primary.main' : 'text.secondary',
                   display: 'flex',
                 }}
+                aria-current={location.pathname === "/" ? "page" : undefined}
               >
                 Dashboard
               </Button>
               <Button
                 component={Link}
                 to="/metrics"
-                startIcon={<AnalyticsIcon />}
+                startIcon={<AnalyticsIcon aria-hidden="true" />}
                 sx={{
                   my: 2,
                   color: location.pathname === "/metrics" ? 'primary.main' : 'text.secondary',
                   display: 'flex',
                 }}
+                aria-current={location.pathname === "/metrics" ? "page" : undefined}
               >
                 Metrics
               </Button>

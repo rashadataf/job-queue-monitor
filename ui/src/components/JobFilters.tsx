@@ -79,6 +79,7 @@ export const JobFilters = ({
         value={search}
         onChange={handleSearchChange}
         sx={{ minWidth: 250 }}
+        label="Search jobs"
         slotProps={{
           input: {
             startAdornment: (
@@ -88,7 +89,11 @@ export const JobFilters = ({
             ),
             endAdornment: search ? (
               <InputAdornment position="end">
-                <IconButton size="small" onClick={handleClearSearch}>
+                <IconButton
+                  size="small"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                >
                   <ClearIcon fontSize="small" />
                 </IconButton>
               </InputAdornment>
