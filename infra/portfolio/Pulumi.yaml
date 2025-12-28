@@ -152,6 +152,37 @@ resources:
                   value: "${API_APP_PORT}",
                 },
 
+                # Security Headers Middleware
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.contentSecurityPolicy",
+                  value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' wss://${SUB_DOMAIN}.${DOMAIN_NAME} https://${SUB_DOMAIN}.${DOMAIN_NAME}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.stsSeconds",
+                  value: "31536000",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.stsIncludeSubdomains",
+                  value: "true",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.contentTypeNosniff",
+                  value: "true",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.customFrameOptionsValue",
+                  value: "DENY",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.referrerPolicy",
+                  value: "strict-origin-when-cross-origin",
+                },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-security.headers.permissionsPolicy",
+                  value: "geolocation=(), microphone=(), camera=()",
+                },
+
+                # API Strip Prefix Middleware
                 {
                   label: "traefik.http.middlewares.job-queue-monitor-api-strip.stripprefix.prefixes",
                   value: "/api",
@@ -175,7 +206,7 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-api.middlewares",
-                  value: "job-queue-monitor-api-strip",
+                  value: "job-queue-monitor-api-strip,job-queue-monitor-security",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-api.tls",
@@ -204,7 +235,7 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-api-www.middlewares",
-                  value: "job-queue-monitor-api-strip",
+                  value: "job-queue-monitor-api-strip,job-queue-monitor-security",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-api-www.tls",
@@ -232,6 +263,10 @@ resources:
                   value: "110",
                 },
                 {
+                  label: "traefik.http.routers.job-queue-monitor-socket.middlewares",
+                  value: "job-queue-monitor-security",
+                },
+                {
                   label: "traefik.http.routers.job-queue-monitor-socket.tls",
                   value: "${ENABLE_TLS}",
                 },
@@ -255,6 +290,10 @@ resources:
                 {
                   label: "traefik.http.routers.job-queue-monitor-socket-www.priority",
                   value: "110",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.middlewares",
+                  value: "job-queue-monitor-security",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-socket-www.tls",
@@ -363,6 +402,10 @@ resources:
                   value: "job-queue-monitor-ui",
                 },
                 {
+                  label: "traefik.http.routers.job-queue-monitor-ui.middlewares",
+                  value: "job-queue-monitor-security",
+                },
+                {
                   label: "traefik.http.routers.job-queue-monitor-ui.tls",
                   value: "${ENABLE_TLS}",
                 },
@@ -386,6 +429,10 @@ resources:
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.service",
                   value: "job-queue-monitor-ui",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.middlewares",
+                  value: "job-queue-monitor-security",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.tls",
