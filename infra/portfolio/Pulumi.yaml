@@ -11,10 +11,16 @@ config: {
     "UI_APP_PORT": { type: "string", default: "5173" },
     "UI_HOST_PORT": { type: "string", default: "5173" },
     "BUILD_PHASE_TARGET": { type: "string", value: "development" },
-  "API_CODE_MOUNT_TARGET": { type: "string", default: "/usr/src/app/api" },
-  "SHARED_CODE_MOUNT_TARGET": { type: "string", default: "/usr/src/app/shared" },
-  "API_NODE_MODULES_MOUNT_TARGET": { type: "string", default: "/usr/src/app/api/node_modules" },
-  "SHARED_NODE_MODULES_MOUNT_TARGET": { type: "string", default: "/usr/src/app/shared/node_modules" },
+    # Defaults are production-safe (do not mask the baked production image contents).
+    # Dev stacks should override these to mount into /usr/src/app/{api,shared}.
+    "API_CODE_MOUNT_TARGET":
+      { type: "string", default: "/usr/src/app/_dev/api" },
+    "SHARED_CODE_MOUNT_TARGET":
+      { type: "string", default: "/usr/src/app/_dev/shared" },
+    "API_NODE_MODULES_MOUNT_TARGET":
+      { type: "string", default: "/usr/src/app/_dev/api/node_modules" },
+    "SHARED_NODE_MODULES_MOUNT_TARGET":
+      { type: "string", default: "/usr/src/app/_dev/shared/node_modules" },
     "DB_NAME": { type: "string", secret: true },
     "DB_USER": { type: "string", secret: true },
     "DB_PASSWORD": { type: "string", secret: true },
