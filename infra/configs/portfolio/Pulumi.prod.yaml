@@ -1,6 +1,12 @@
 config:
   job-queue-monitor:CORE_STACK_NAME: Rashad/portfolio-infra/prod
   job-queue-monitor:BUILD_PHASE_TARGET: production
+  # IMPORTANT: In production, do NOT mount over /usr/src/app/api or /usr/src/app/shared.
+  # The production image contains the compiled output and installed deps; bind/volume mounts would mask them.
+  job-queue-monitor:API_CODE_MOUNT_TARGET: /usr/src/app/_dev/api
+  job-queue-monitor:SHARED_CODE_MOUNT_TARGET: /usr/src/app/_dev/shared
+  job-queue-monitor:API_NODE_MODULES_MOUNT_TARGET: /usr/src/app/_dev/api/node_modules
+  job-queue-monitor:SHARED_NODE_MODULES_MOUNT_TARGET: /usr/src/app/_dev/shared/node_modules
   job-queue-monitor:SUB_DOMAIN: jobs
   job-queue-monitor:API_APP_PORT: "3000"
   job-queue-monitor:API_HOST_PORT: "3000"
