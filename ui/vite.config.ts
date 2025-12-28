@@ -89,19 +89,21 @@ export default defineConfig({
           if (id.includes("node_modules/@mui/icons-material")) {
             return "mui-icons";
           }
-          if (id.includes("node_modules/@mui/x-date-pickers")) {
+          if (
+            id.includes("node_modules/@mui/x-date-pickers") ||
+            id.includes("node_modules/@mui/system") ||
+            id.includes("node_modules/@mui/base")
+          ) {
             return "mui-pickers";
           }
-          // Data fetching and state
+          // Data fetching, state, and socket.io together (avoid init issues)
           if (
             id.includes("node_modules/swr") ||
-            id.includes("node_modules/axios")
+            id.includes("node_modules/axios") ||
+            id.includes("node_modules/socket.io-client") ||
+            id.includes("node_modules/engine.io-client")
           ) {
             return "data-vendor";
-          }
-          // Socket.io (real-time communication)
-          if (id.includes("node_modules/socket.io-client")) {
-            return "socket-vendor";
           }
           // Date utilities
           if (id.includes("node_modules/date-fns")) {
