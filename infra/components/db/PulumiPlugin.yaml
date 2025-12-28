@@ -32,7 +32,7 @@ components:
             dbImage:
               {
                 type: "docker:RemoteImage",
-                properties: { name: "postgres:17.0" },
+                properties: { name: "postgres:17-alpine" },
               },
             dbContainer: { type: "docker:Container", properties: {
                     name: "${DB_CONTAINER_NAME}",
