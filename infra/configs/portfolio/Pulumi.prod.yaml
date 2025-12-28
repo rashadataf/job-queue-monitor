@@ -1,0 +1,17 @@
+config:
+  job-queue-monitor:CORE_STACK_NAME: Rashad/portfolio-infra/prod
+  job-queue-monitor:BUILD_PHASE_TARGET: production
+  job-queue-monitor:SUB_DOMAIN: jobs
+  job-queue-monitor:API_APP_PORT: "3000"
+  job-queue-monitor:API_HOST_PORT: "3000"
+  job-queue-monitor:UI_APP_PORT: "80"
+  job-queue-monitor:UI_HOST_PORT: "80"
+  job-queue-monitor:DB_NAME:
+    secure: AAABAH4ItXSDDUM25N7JNXG148lCTBCm1x8nJeNVp6UYEQ93y2qduRhHpzxxiXs8Tw==
+  job-queue-monitor:DB_USER:
+    secure: AAABAOsXhttGDwWz7G25zAfQGyHB4frAR+meGFGsZN72E9qxbc/jzygc4+rf71YbZcz0fMC4
+  job-queue-monitor:DB_PASSWORD:
+    secure: AAABAJWVFrSPtcIxuRcOuQr2agBZmGe2QXVXaaW6Ngm9ByCfA9E0i14BWq2cOPsS3/31bMtyKyUS3A==
+  job-queue-monitor:DB_PORT:
+    secure: AAABAF2kflpf4lLg6dcMmOBTCZCZzEXD/yGQsXeBi+i7dHZq
+  job-queue-monitor:REDIS_PORT: "6379"

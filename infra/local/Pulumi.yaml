@@ -1,6 +1,6 @@
 name: job-queue-monitor-standalone
 description: Standalone infra for job-queue-monitor (no portfolio stack, no Traefik)
-stackConfigDir: ../configs
+stackConfigDir: ../configs/local
 runtime: yaml
 
 config:
@@ -11,10 +11,10 @@ config:
     "UI_APP_PORT": { type: "string", default: "5173" },
     "UI_HOST_PORT": { type: "string", default: "5173" },
     "BUILD_PHASE_TARGET": { type: "string", default: "development" },
-    "DB_NAME": { type: "string", default: "job_queue_monitor" },
-    "DB_USER": { type: "string", default: "job_queue_monitor" },
-    "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
-    "DB_PORT": { type: "string", default: "5432" },
+    "DB_NAME": { type: "string", secret: true },
+    "DB_USER": { type: "string", secret: true },
+    "DB_PASSWORD": { type: "string", secret: true },
+    "DB_PORT": { type: "string", secret: true },
     "REDIS_PORT": { type: "string", default: "6379" },
     "DOMAIN_NAME": { type: "string", default: "localhost" },
   }
@@ -146,6 +146,11 @@ resources:
             image: "${jobQueueUiImage.imageId}",
             restart: "always",
             networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            envs:
+              [
+                "VITE_API_URL=http://${DOMAIN_NAME}:${API_HOST_PORT}",
+                "VITE_SOCKET_URL=http://${DOMAIN_NAME}:${API_HOST_PORT}",
+              ],
             mounts:
               [
                 {

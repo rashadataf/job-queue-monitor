@@ -10,15 +10,30 @@ import {
 } from "@shared";
 import { useSWRConfig } from "swr";
 
-// In a real app, this should come from environment variables
-const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const resolveSocketOrigin = () => {
+  const socketUrl = import.meta.env.VITE_SOCKET_URL as string | undefined;
+  if (socketUrl) return socketUrl;
+
+  const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+  // If API URL is absolute (e.g. https://jobs.localhost/api), use its origin.
+  if (apiUrl && /^https?:\/\//i.test(apiUrl)) {
+    try {
+      return new URL(apiUrl).origin;
+    } catch {
+      // fall through
+    }
+  }
+
+  // Otherwise (e.g. /api), use same-origin.
+  return window.location.origin;
+};
 
 export const useJobSocket = () => {
   const socketRef = useRef<Socket | null>(null);
   const { mutate } = useSWRConfig();
 
   useEffect(() => {
-    socketRef.current = io(SOCKET_URL);
+    socketRef.current = io(resolveSocketOrigin());
     const socket = socketRef.current;
 
     socket.on("connect", () => {

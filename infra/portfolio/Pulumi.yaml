@@ -1,32 +1,49 @@
 name: job-queue-monitor
 description: Job Queue Monitor app stack attached to portfolio Traefik/core infra
-stackConfigDir: ../configs
+stackConfigDir: ../configs/portfolio
 runtime: yaml
 
 config: {
     "pulumi:tags": { value: { "pulumi:template": yaml } },
     "CORE_STACK_NAME": { type: "string" },
-    "APP_PORT": { type: "string" },
+    "API_APP_PORT": { type: "string", default: "3000" },
+    "API_HOST_PORT": { type: "string", default: "3000" },
+    "UI_APP_PORT": { type: "string", default: "5173" },
+    "UI_HOST_PORT": { type: "string", default: "5173" },
     "BUILD_PHASE_TARGET": { type: "string", value: "development" },
-    "DB_NAME": { type: "string", default: "job_queue_monitor" },
-    "DB_USER": { type: "string", default: "job_queue_monitor" },
-    "DB_PASSWORD": { type: "string", default: "job_queue_monitor" },
-    "DB_PORT": { type: "string", default: "5432" },
+    "DB_NAME": { type: "string", secret: true },
+    "DB_USER": { type: "string", secret: true },
+    "DB_PASSWORD": { type: "string", secret: true },
+    "DB_PORT": { type: "string", secret: true },
+    "REDIS_PORT": { type: "string", default: "6379" },
+    "SUB_DOMAIN": { type: "string", default: "jobs" },
   } # e.g. portfolio-infra/dev
 
 variables:
   {
-    APP_NETWORK_NAME: "${coreStack.outputs.appNetworkName}",
+    PORTFOLIO_NETWORK_NAME: "${coreStack.outputs.appNetworkName}",
+    CORE_STACK_NAME: "${CORE_STACK_NAME}",
+    API_APP_PORT: "${API_APP_PORT}",
+    API_HOST_PORT: "${API_HOST_PORT}",
+    UI_APP_PORT: "${UI_APP_PORT}",
+    UI_HOST_PORT: "${UI_HOST_PORT}",
+    BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}",
+    APP_NETWORK_NAME: "${pulumi.project}-network",
     DOMAIN_NAME: "${coreStack.outputs.domainName}",
     ROUTER_ENTRYPOINT: "${coreStack.outputs.routerEntrypoint}",
     ENABLE_TLS: "${coreStack.outputs.enableTls}",
-    APP_PORT: "${APP_PORT}",
-    CORE_STACK_NAME: "${CORE_STACK_NAME}",
-    BUILD_PHASE_TARGET: "${BUILD_PHASE_TARGET}",
+    PROTOCOL: "${coreStack.outputs.protocol}",
     DB_NAME: "${DB_NAME}",
     DB_USER: "${DB_USER}",
     DB_PASSWORD: "${DB_PASSWORD}",
     DB_PORT: "${DB_PORT}",
+    DB_HOST: "db",
+    REDIS_HOST: "redis",
+    REDIS_PORT: "${REDIS_PORT}",
+    SUB_DOMAIN: "${SUB_DOMAIN}",
+    API_URL: "${PROTOCOL}://${SUB_DOMAIN}.${DOMAIN_NAME}/api",
+    API_SOCKET_URL: "${PROTOCOL}://${SUB_DOMAIN}.${DOMAIN_NAME}",
+    CORS_ORIGIN: "${PROTOCOL}://${DOMAIN_NAME},${PROTOCOL}://www.${DOMAIN_NAME},${PROTOCOL}://${SUB_DOMAIN}.${DOMAIN_NAME},${PROTOCOL}://www.${SUB_DOMAIN}.${DOMAIN_NAME}",
   }
 
 resources:
@@ -36,6 +53,8 @@ resources:
         type: "pulumi:pulumi:StackReference",
         properties: { name: "${CORE_STACK_NAME}" },
       },
+    jobQueueNetwork:
+      { type: "docker:Network", properties: { name: "${APP_NETWORK_NAME}" } },
     jobQueueApiNodeModulesVolume:
       {
         type: "docker:Volume",
@@ -51,48 +70,19 @@ resources:
         type: "docker:Volume",
         properties: { name: "job_queue_monitor_shared_node_modules" },
       },
-    jobQueueDbDataVolume:
-      {
-        type: "docker:Volume",
-        properties: { name: "job_queue_monitor_db_data" },
-      },
-    jobQueueDbContainer:
-      {
-        type: "docker:Container",
-        properties:
-          {
-            name: "job-queue-monitor-db-${pulumi.stack}",
-            image: "postgres:16-alpine",
-            restart: "always",
-            mounts:
-              [
-                {
-                  type: "volume",
-                  source: "${jobQueueDbDataVolume.name}",
-                  target: "/var/lib/postgresql/data",
-                },
-              ],
-            envs:
-              [
-                "POSTGRES_DB=${DB_NAME}",
-                "POSTGRES_USER=${DB_USER}",
-                "POSTGRES_PASSWORD=${DB_PASSWORD}",
-              ],
-            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
-          },
-      },
     jobQueueApiImage:
       {
         type: "docker:RemoteImage",
         properties:
           {
-            name: "job-queue-monitor-api:latest",
+            name: "job-queue-monitor-api-portfolio",
             build:
               {
                 context: "../..",
                 dockerfile: "api/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
+                buildArgs: { APP_PORT: "${API_APP_PORT}" },
               },
           },
       },
@@ -101,14 +91,14 @@ resources:
         type: "docker:RemoteImage",
         properties:
           {
-            name: "job-queue-monitor-ui:latest",
+            name: "job-queue-monitor-ui-portfolio",
             build:
               {
                 context: "../..",
                 dockerfile: "ui/Dockerfile",
                 platform: "linux/amd64",
                 target: "${BUILD_PHASE_TARGET}",
-                buildArgs: { APP_PORT: "${APP_PORT}" },
+                buildArgs: { APP_PORT: "${UI_APP_PORT}" },
               },
           },
       },
@@ -117,15 +107,129 @@ resources:
         type: "docker:Container",
         properties:
           {
-            image: "${jobQueueApiImage.imageName}",
-            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            name: "job-queue-monitor-api-portfolio-${pulumi.stack}",
+            image: "${jobQueueApiImage.imageId}",
+            restart: "always",
+            networksAdvanced:
+              [
+                { name: "${APP_NETWORK_NAME}" },
+                { name: "${PORTFOLIO_NETWORK_NAME}" },
+              ],
             envs:
               [
-                "DB_HOST=${jobQueueDbContainer.name}",
+                "DB_HOST=${DB_HOST}",
                 "DB_PORT=${DB_PORT}",
                 "DB_NAME=${DB_NAME}",
                 "DB_USER=${DB_USER}",
                 "DB_PASSWORD=${DB_PASSWORD}",
+                "REDIS_HOST=${REDIS_HOST}",
+                "REDIS_PORT=${REDIS_PORT}",
+                "CORS_ORIGIN=${CORS_ORIGIN}",
+              ],
+            labels:
+              [
+                { label: "traefik.enable", value: "true" },
+                {
+                  label: "traefik.http.services.job-queue-monitor-api.loadbalancer.server.port",
+                  value: "${API_APP_PORT}",
+                },
+
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-api-strip.stripprefix.prefixes",
+                  value: "/api",
+                },
+
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.rule",
+                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.middlewares",
+                  value: "job-queue-monitor-api-strip",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.tls.certresolver",
+                  value: "letsencrypt",
+                },
+
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.rule",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.middlewares",
+                  value: "job-queue-monitor-api-strip",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.tls.certresolver",
+                  value: "letsencrypt",
+                },
+
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.rule",
+                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.tls.certresolver",
+                  value: "letsencrypt",
+                },
+
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.rule",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.tls.certresolver",
+                  value: "letsencrypt",
+                },
               ],
             mounts:
               [
@@ -157,8 +261,19 @@ resources:
         type: "docker:Container",
         properties:
           {
-            image: "${jobQueueUiImage.imageName}",
-            networksAdvanced: [{ name: "${APP_NETWORK_NAME}" }],
+            name: "job-queue-monitor-ui-portfolio-${pulumi.stack}",
+            image: "${jobQueueUiImage.imageId}",
+            restart: "always",
+            networksAdvanced:
+              [
+                { name: "${APP_NETWORK_NAME}" },
+                { name: "${PORTFOLIO_NETWORK_NAME}" },
+              ],
+            envs:
+              [
+                "VITE_API_URL=${API_URL}",
+                "VITE_SOCKET_URL=${API_SOCKET_URL}",
+              ],
             mounts:
               [
                 {
@@ -187,7 +302,7 @@ resources:
                 { label: "traefik.enable", value: "true" },
                 {
                   label: "traefik.http.services.job-queue-monitor-ui.loadbalancer.server.port",
-                  value: "${APP_PORT}",
+                  value: "${UI_APP_PORT}",
                 },
 
                 {
@@ -196,7 +311,7 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui.rule",
-                  value: "Host(`jobs.${DOMAIN_NAME}`)",
+                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`)",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui.service",
@@ -217,7 +332,7 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.rule",
-                  value: "Host(`www.jobs.${DOMAIN_NAME}`)",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`)",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.service",
@@ -234,6 +349,48 @@ resources:
               ],
           },
       },
+    db:
+      {
+        type: "db:PostgresDb",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            networkName: "${APP_NETWORK_NAME}",
+            dbName: "${DB_NAME}",
+            dbUser: "${DB_USER}",
+            dbPassword: "${DB_PASSWORD}",
+            dbPort: "${DB_PORT}",
+            dbNetworkAlias: "${DB_HOST}",
+          },
+      },
+    redis:
+      {
+        type: "redis:Redis",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            networkName: "${APP_NETWORK_NAME}",
+            redisNetworkAlias: "${REDIS_HOST}",
+            redisPort: "${REDIS_PORT}",
+          },
+      },
+    shared:
+      {
+        type: "shared:Shared",
+        properties:
+          {
+            projectName: "${pulumi.project}",
+            stackName: "${pulumi.stack}",
+            jobQueueSharedNodeModulesVolumeName: "${jobQueueSharedNodeModulesVolume.name}",
+          },
+      },
   }
-
+packages:
+  {
+    db: "../components/db",
+    redis: "../components/redis",
+    shared: "../components/shared",
+  }
 outputs: {}

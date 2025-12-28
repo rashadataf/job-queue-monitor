@@ -1,7 +1,7 @@
 config:
-  job-queue-monitor:APP_PORT: "5173"
-  job-queue-monitor:CORE_STACK_NAME: Rashad/portfolio-infra/dev
-  job-queue-monitor:BUILD_PHASE_TARGET: development
+  job-queue-monitor-standalone:APP_PORT: "5173"
+  job-queue-monitor-standalone:CORE_STACK_NAME: Rashad/portfolio-infra/dev
+  job-queue-monitor-standalone:BUILD_PHASE_TARGET: development
   job-queue-monitor-standalone:DB_NAME:
     secure: AAABAJkR3FwGvJT4shrIolXV3NBXFK2hn+CFzyPvfpOY4qcmuPaZ4+CbWVUlr4u1Nw==
   job-queue-monitor-standalone:DB_USER:
@@ -12,3 +12,8 @@ config:
     secure: AAABAP67Sp6Ab7N4F9upDLp87tdYIrK8Mxac0RFL56GVhX5A
   job-queue-monitor-standalone:REDIS_PORT: "6379"
   job-queue-monitor-standalone:DOMAIN_NAME: localhost
+  job-queue-monitor-standalone:SUB_DOMAIN: jobs
+  job-queue-monitor-standalone:API_APP_PORT: "3000"
+  job-queue-monitor-standalone:API_HOST_PORT: "3000"
+  job-queue-monitor-standalone:UI_APP_PORT: "5173"
+  job-queue-monitor-standalone:UI_HOST_PORT: "5173"
