@@ -126,21 +126,22 @@ resources:
                 "REDIS_PORT=${REDIS_PORT}",
                 "CORS_ORIGIN=${CORS_ORIGIN}",
               ],
-            labels: [
+            labels:
+              [
                 { label: "traefik.enable", value: "true" },
-                # {
-                #   label: "traefik.docker.network",
-                #   value: "${PORTFOLIO_NETWORK_NAME}",
-                # },
+                {
+                  label: "traefik.docker.network",
+                  value: "${PORTFOLIO_NETWORK_NAME}",
+                },
                 {
                   label: "traefik.http.services.job-queue-monitor-api.loadbalancer.server.port",
                   value: "${API_APP_PORT}",
                 },
 
-                # {
-                #   label: "traefik.http.middlewares.job-queue-monitor-api-strip.stripprefix.prefixes",
-                #   value: "/api",
-                # },
+                {
+                  label: "traefik.http.middlewares.job-queue-monitor-api-strip.stripprefix.prefixes",
+                  value: "/api",
+                },
 
                 {
                   label: "traefik.http.routers.job-queue-monitor-api.rule",
@@ -158,97 +159,97 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-api.priority",
                   value: "100",
                 },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api.middlewares",
-                #   value: "job-queue-monitor-api-strip",
-                # },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.middlewares",
+                  value: "job-queue-monitor-api-strip",
+                },
                 {
                   label: "traefik.http.routers.job-queue-monitor-api.tls",
                   value: "${ENABLE_TLS}",
                 },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api.tls.certresolver",
-                #   value: "letsencrypt",
-                # },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api.tls.certresolver",
+                  value: "letsencrypt",
+                },
 
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.entrypoints",
-                #   value: "${ROUTER_ENTRYPOINT}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.rule",
-                #   value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.priority",
-                #   value: "100",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.service",
-                #   value: "job-queue-monitor-api",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.middlewares",
-                #   value: "job-queue-monitor-api-strip",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.tls",
-                #   value: "${ENABLE_TLS}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-api-www.tls.certresolver",
-                #   value: "letsencrypt",
-                # },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.rule",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/api`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.priority",
+                  value: "100",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.middlewares",
+                  value: "job-queue-monitor-api-strip",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-api-www.tls.certresolver",
+                  value: "letsencrypt",
+                },
 
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.entrypoints",
-                #   value: "${ROUTER_ENTRYPOINT}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.rule",
-                #   value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.priority",
-                #   value: "110",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.service",
-                #   value: "job-queue-monitor-api",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.tls",
-                #   value: "${ENABLE_TLS}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket.tls.certresolver",
-                #   value: "letsencrypt",
-                # },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.rule",
+                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.priority",
+                  value: "110",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket.tls.certresolver",
+                  value: "letsencrypt",
+                },
 
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.entrypoints",
-                #   value: "${ROUTER_ENTRYPOINT}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.rule",
-                #   value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.priority",
-                #   value: "110",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.service",
-                #   value: "job-queue-monitor-api",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.tls",
-                #   value: "${ENABLE_TLS}",
-                # },
-                # {
-                #   label: "traefik.http.routers.job-queue-monitor-socket-www.tls.certresolver",
-                #   value: "letsencrypt",
-                # },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.rule",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.entrypoints",
+                  value: "${ROUTER_ENTRYPOINT}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.service",
+                  value: "job-queue-monitor-api",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.priority",
+                  value: "110",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.tls",
+                  value: "${ENABLE_TLS}",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-socket-www.tls.certresolver",
+                  value: "letsencrypt",
+                },
               ],
             mounts:
               [
@@ -318,8 +319,13 @@ resources:
                   target: "/usr/src/app/shared/node_modules",
                 },
               ],
-            labels: [
+            labels:
+              [
                 { label: "traefik.enable", value: "true" },
+                {
+                  label: "traefik.docker.network",
+                  value: "${PORTFOLIO_NETWORK_NAME}",
+                },
                 {
                   label: "traefik.http.services.job-queue-monitor-ui.loadbalancer.server.port",
                   value: "${UI_APP_PORT}",
@@ -331,7 +337,11 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui.rule",
-                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`)",
+                  value: "Host(`${SUB_DOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`) && !PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui.priority",
+                  value: "1",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui.service",
@@ -352,7 +362,11 @@ resources:
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.rule",
-                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`)",
+                  value: "Host(`www.${SUB_DOMAIN}.${DOMAIN_NAME}`) && !PathPrefix(`/api`) && !PathPrefix(`/socket.io`)",
+                },
+                {
+                  label: "traefik.http.routers.job-queue-monitor-ui-www.priority",
+                  value: "1",
                 },
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.service",
