@@ -77,5 +77,6 @@ RUN yarn install --production=true
 
 COPY --from=build /usr/src/app/shared/dist ./dist
 
+WORKDIR /usr/src/app/api
 EXPOSE $APP_PORT
 CMD ["yarn", "start:prod"]
