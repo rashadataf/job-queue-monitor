@@ -1,79 +1,110 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Primary Meta Tags -->
-    <title>Job Queue Monitor - Real-Time Background Job Monitoring Dashboard</title>
-    <meta name="title" content="Job Queue Monitor - Real-Time Background Job Monitoring Dashboard" />
-    <meta name="description" content="Monitor and manage BullMQ background jobs in real-time. Track job status, performance metrics, and queue health with WebSocket updates and comprehensive analytics." />
-    <meta name="keywords" content="background job monitoring, bullmq dashboard, redis queue monitor, job queue management, real-time monitoring, nestjs jobs, typescript job queue" />
+    <title>
+      Job Queue Monitor - Real-Time Background Job Monitoring Dashboard
+    </title>
+    <meta
+      name="title"
+      content="Job Queue Monitor - Real-Time Background Job Monitoring Dashboard"
+    />
+    <meta
+      name="description"
+      content="Monitor and manage BullMQ background jobs in real-time. Track job status, performance metrics, and queue health with WebSocket updates and comprehensive analytics."
+    />
+    <meta
+      name="keywords"
+      content="background job monitoring, bullmq dashboard, redis queue monitor, job queue management, real-time monitoring, nestjs jobs, typescript job queue"
+    />
     <meta name="author" content="Rashad Ataf" />
     <meta name="robots" content="index, follow" />
-    
+
     <!-- Canonical URL -->
     <link rel="canonical" href="https://jobs.rashadataf.com/" />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jobs.rashadataf.com/" />
-    <meta property="og:title" content="Job Queue Monitor - Real-Time Background Job Monitoring" />
-    <meta property="og:description" content="Monitor and manage BullMQ background jobs in real-time with comprehensive analytics and WebSocket updates." />
-    <meta property="og:image" content="https://jobs.rashadataf.com/og-image.png" />
+    <meta
+      property="og:title"
+      content="Job Queue Monitor - Real-Time Background Job Monitoring"
+    />
+    <meta
+      property="og:description"
+      content="Monitor and manage BullMQ background jobs in real-time with comprehensive analytics and WebSocket updates."
+    />
+    <meta
+      property="og:image"
+      content="https://jobs.rashadataf.com/og-image.png"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Job Queue Monitor" />
     <meta property="og:locale" content="en_US" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://jobs.rashadataf.com/" />
-    <meta name="twitter:title" content="Job Queue Monitor - Real-Time Background Job Monitoring" />
-    <meta name="twitter:description" content="Monitor and manage BullMQ background jobs in real-time with comprehensive analytics." />
-    <meta name="twitter:image" content="https://jobs.rashadataf.com/og-image.png" />
-    
+    <meta
+      name="twitter:title"
+      content="Job Queue Monitor - Real-Time Background Job Monitoring"
+    />
+    <meta
+      name="twitter:description"
+      content="Monitor and manage BullMQ background jobs in real-time with comprehensive analytics."
+    />
+    <meta
+      name="twitter:image"
+      content="https://jobs.rashadataf.com/og-image.png"
+    />
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#1976d2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Job Monitor" />
-    
+
     <!-- Performance: DNS Prefetch & Preconnect -->
+    <link rel="dns-prefetch" href="https://jobs.rashadataf.com" />
+    <link rel="preconnect" href="https://jobs.rashadataf.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
+
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Job Queue Monitor",
-      "description": "Real-time monitoring and management dashboard for BullMQ background jobs with comprehensive analytics and WebSocket updates",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "featureList": [
-        "Real-time job status monitoring",
-        "WebSocket live updates",
-        "Bulk operations support",
-        "Comprehensive metrics dashboard",
-        "CSV and JSON export",
-        "Job scheduling and retry management"
-      ]
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Job Queue Monitor",
+        "description": "Real-time monitoring and management dashboard for BullMQ background jobs with comprehensive analytics and WebSocket updates",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Real-time job status monitoring",
+          "WebSocket live updates",
+          "Bulk operations support",
+          "Comprehensive metrics dashboard",
+          "CSV and JSON export",
+          "Job scheduling and retry management"
+        ]
+      }
     </script>
   </head>
   <body>

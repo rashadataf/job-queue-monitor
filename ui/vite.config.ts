@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [
     react({ tsDecorators: true }),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
+      injectRegister: "inline",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "robots.txt"],
       manifest: false, // Using public/manifest.webmanifest
       workbox: {
@@ -73,10 +74,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui-material': ['@mui/material'],
-          'mui-icons': ['@mui/icons-material'],
-          'data-vendor': ['swr', 'axios', 'socket.io-client']
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "mui-material": ["@mui/material"],
+          "mui-icons": ["@mui/icons-material"],
+          "data-vendor": ["swr", "axios", "socket.io-client"],
         },
         chunkFileNames: "assets/[name]-[hash].js",
         entryFileNames: "assets/[name]-[hash].js",
