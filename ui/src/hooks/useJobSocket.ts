@@ -33,7 +33,14 @@ export const useJobSocket = () => {
   const { mutate } = useSWRConfig();
 
   useEffect(() => {
-    socketRef.current = io(resolveSocketOrigin());
+    socketRef.current = io(resolveSocketOrigin(), {
+      path: "/socket.io/",
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 10000,
+    });
     const socket = socketRef.current;
 
     socket.on("connect", () => {

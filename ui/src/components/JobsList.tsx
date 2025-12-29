@@ -158,7 +158,7 @@ export const JobsList = () => {
                         <Box sx={{ bgcolor: 'action.hover', borderRadius: '50%', p: 2, mb: 2 }}>
                             <AccessTime style={{ fontSize: 32, color: 'gray' }} />
                         </Box>
-                        <Typography variant="h6">No jobs found</Typography>
+                        <Typography variant="body1" fontWeight="600" fontSize="1.125rem">No jobs found</Typography>
                         <Typography variant="body2" color="text.secondary">
                             {status ? 'No jobs match the selected filters' : 'Create a new job to get started'}
                         </Typography>
@@ -252,7 +252,14 @@ export const JobsList = () => {
 
     return (
         <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'flex-start' },
+                gap: 2,
+                mb: 2
+            }}>
                 <JobFilters
                     status={status}
                     sortBy={sortBy}
@@ -268,6 +275,7 @@ export const JobsList = () => {
                     onClick={handleExportClick}
                     disabled={exportLoading}
                     startIcon={<Download />}
+                    sx={{ minWidth: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}
                 >
                     Export
                 </Button>

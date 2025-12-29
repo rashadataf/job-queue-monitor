@@ -10,7 +10,7 @@ export const CardHeader = (props: HTMLAttributes<HTMLDivElement>) => {
 }
 
 export const CardTitle = (props: TypographyProps) => {
-  return <Typography variant="h6" component="h3" {...props} />;
+  return <Typography variant="h6" component="h2" {...props} />;
 }
 
 export const CardDescription = (props: TypographyProps) => {

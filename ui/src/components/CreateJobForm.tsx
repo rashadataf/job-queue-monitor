@@ -96,8 +96,10 @@ export const CreateJobForm = () => {
                                 placeholder="https://api.example.com/data"
                             />
                             <FormControl fullWidth size="small">
-                                <InputLabel>Method</InputLabel>
+                                <InputLabel id="method-label">Method</InputLabel>
                                 <Select
+                                    labelId="method-label"
+                                    id="method"
                                     value={apiData.method || 'GET'}
                                     label="Method"
                                     onChange={(e) => setData({ ...data, method: e.target.value })}
@@ -187,8 +189,10 @@ export const CreateJobForm = () => {
                         />
 
                         <FormControl fullWidth size="small">
-                            <InputLabel>Job Type</InputLabel>
+                            <InputLabel id="job-type-label">Job Type</InputLabel>
                             <Select
+                                labelId="job-type-label"
+                                id="job-type"
                                 value={type}
                                 label="Job Type"
                                 onChange={(e) => {
@@ -206,8 +210,10 @@ export const CreateJobForm = () => {
                         {renderDataInputs()}
 
                         <FormControl fullWidth size="small">
-                            <InputLabel>Priority</InputLabel>
+                            <InputLabel id="priority-label">Priority</InputLabel>
                             <Select
+                                labelId="priority-label"
+                                id="priority"
                                 value={priority}
                                 label="Priority"
                                 onChange={(e) => setPriority(e.target.value as JobPriority)}

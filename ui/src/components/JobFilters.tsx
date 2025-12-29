@@ -5,7 +5,6 @@ import {
   MenuItem,
   Box,
   IconButton,
-  Tooltip,
   TextField,
   InputAdornment,
   type SelectChangeEvent,
@@ -79,6 +78,7 @@ export const JobFilters = ({
         value={search}
         onChange={handleSearchChange}
         sx={{ minWidth: 250 }}
+        label="Search jobs"
         slotProps={{
           input: {
             startAdornment: (
@@ -88,7 +88,11 @@ export const JobFilters = ({
             ),
             endAdornment: search ? (
               <InputAdornment position="end">
-                <IconButton size="small" onClick={handleClearSearch}>
+                <IconButton
+                  size="small"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                >
                   <ClearIcon fontSize="small" />
                 </IconButton>
               </InputAdornment>
@@ -111,6 +115,7 @@ export const JobFilters = ({
                 size="small"
                 onClick={handleClearStatus}
                 sx={{ mr: 1 }}
+                aria-label="Clear status filter"
               >
                 <ClearIcon fontSize="small" />
               </IconButton>
@@ -161,17 +166,17 @@ export const JobFilters = ({
         </Select>
       </FormControl>
 
-      <Tooltip title="Showing filtered results">
-        <Box
-          sx={{
-            ml: "auto",
-            fontSize: "0.875rem",
-            color: "text.secondary",
-          }}
-        >
-          {status && `Filtered by: ${status}`}
-        </Box>
-      </Tooltip>
+      <Box
+        sx={{
+          ml: "auto",
+          fontSize: "0.875rem",
+          color: "text.secondary",
+        }}
+        role="status"
+        aria-live="polite"
+      >
+        {status && `Filtered by: ${status}`}
+      </Box>
     </Box>
   );
 };
