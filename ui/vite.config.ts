@@ -11,7 +11,44 @@ export default defineConfig({
       registerType: "prompt",
       injectRegister: "auto",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "robots.txt"],
-      manifest: false, // Using public/manifest.webmanifest
+      manifest: {
+        name: "Job Queue Monitor",
+        short_name: "Job Monitor",
+        description: "Real-time monitoring dashboard for BullMQ background jobs",
+        theme_color: "#1976d2",
+        background_color: "#ffffff",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
+        orientation: "portrait-primary",
+        icons: [
+          {
+            src: "/pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any"
+          },
+          {
+            src: "/pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any"
+          },
+          {
+            src: "/pwa-maskable-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable"
+          },
+          {
+            src: "/pwa-maskable-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
+          }
+        ],
+        categories: ["productivity", "utilities"]
+      },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
