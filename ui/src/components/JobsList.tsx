@@ -158,7 +158,7 @@ export const JobsList = () => {
                         <Box sx={{ bgcolor: 'action.hover', borderRadius: '50%', p: 2, mb: 2 }}>
                             <AccessTime style={{ fontSize: 32, color: 'gray' }} />
                         </Box>
-                        <Typography variant="h6">No jobs found</Typography>
+                        <Typography variant="body1" fontWeight="600" fontSize="1.125rem">No jobs found</Typography>
                         <Typography variant="body2" color="text.secondary">
                             {status ? 'No jobs match the selected filters' : 'Create a new job to get started'}
                         </Typography>

@@ -5,7 +5,6 @@ import {
   MenuItem,
   Box,
   IconButton,
-  Tooltip,
   TextField,
   InputAdornment,
   type SelectChangeEvent,
@@ -116,6 +115,7 @@ export const JobFilters = ({
                 size="small"
                 onClick={handleClearStatus}
                 sx={{ mr: 1 }}
+                aria-label="Clear status filter"
               >
                 <ClearIcon fontSize="small" />
               </IconButton>
@@ -166,17 +166,17 @@ export const JobFilters = ({
         </Select>
       </FormControl>
 
-      <Tooltip title="Showing filtered results">
-        <Box
-          sx={{
-            ml: "auto",
-            fontSize: "0.875rem",
-            color: "text.secondary",
-          }}
-        >
-          {status && `Filtered by: ${status}`}
-        </Box>
-      </Tooltip>
+      <Box
+        sx={{
+          ml: "auto",
+          fontSize: "0.875rem",
+          color: "text.secondary",
+        }}
+        role="status"
+        aria-live="polite"
+      >
+        {status && `Filtered by: ${status}`}
+      </Box>
     </Box>
   );
 };

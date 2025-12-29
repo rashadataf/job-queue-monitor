@@ -33,8 +33,12 @@ export const Layout = () => {
                 startIcon={<DashboardIcon aria-hidden="true" />}
                 sx={{
                   my: 2,
-                  color: location.pathname === "/" ? 'primary.main' : 'text.secondary',
+                  color: location.pathname === "/" ? 'primary.contrastText' : 'text.secondary',
+                  bgcolor: location.pathname === "/" ? 'primary.main' : 'transparent',
                   display: 'flex',
+                  '&:hover': {
+                    bgcolor: location.pathname === "/" ? 'primary.dark' : 'action.hover',
+                  },
                 }}
                 aria-current={location.pathname === "/" ? "page" : undefined}
               >
@@ -46,8 +50,12 @@ export const Layout = () => {
                 startIcon={<AnalyticsIcon aria-hidden="true" />}
                 sx={{
                   my: 2,
-                  color: location.pathname === "/metrics" ? 'primary.main' : 'text.secondary',
+                  color: location.pathname === "/metrics" ? 'primary.contrastText' : 'text.secondary',
+                  bgcolor: location.pathname === "/metrics" ? 'primary.main' : 'transparent',
                   display: 'flex',
+                  '&:hover': {
+                    bgcolor: location.pathname === "/metrics" ? 'primary.dark' : 'action.hover',
+                  },
                 }}
                 aria-current={location.pathname === "/metrics" ? "page" : undefined}
               >
