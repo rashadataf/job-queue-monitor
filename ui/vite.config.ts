@@ -8,8 +8,8 @@ export default defineConfig({
   plugins: [
     react({ tsDecorators: true }),
     VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: "inline",
+      registerType: "prompt",
+      injectRegister: "auto",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "robots.txt"],
       manifest: false, // Using public/manifest.webmanifest
       workbox: {
