@@ -212,10 +212,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-api.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-api.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-api.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
 
                 {
                   label: "traefik.http.routers.job-queue-monitor-api-www.rule",
@@ -241,10 +241,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-api-www.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-api-www.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-api-www.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
 
                 {
                   label: "traefik.http.routers.job-queue-monitor-socket.rule",
@@ -270,10 +270,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-socket.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-socket.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-socket.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
 
                 {
                   label: "traefik.http.routers.job-queue-monitor-socket-www.rule",
@@ -299,10 +299,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-socket-www.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-socket-www.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-socket-www.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
               ],
             mounts:
               [
@@ -409,10 +409,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-ui.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-ui.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-ui.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
 
                 {
                   label: "traefik.http.routers.job-queue-monitor-ui-www.entrypoints",
@@ -438,10 +438,10 @@ resources:
                   label: "traefik.http.routers.job-queue-monitor-ui-www.tls",
                   value: "${ENABLE_TLS}",
                 },
-                {
-                  label: "traefik.http.routers.job-queue-monitor-ui-www.tls.certresolver",
-                  value: "letsencrypt",
-                },
+                # { uncomment when run as standalone with own domain
+                #   label: "traefik.http.routers.job-queue-monitor-ui-www.tls.certresolver",
+                #   value: "letsencrypt",
+                # },
               ],
           },
       },
